@@ -1,0 +1,169 @@
+{
+  "version": "1.0",
+  "generated_at": "2025-12-05T10:26:29+00:00",
+  "organization": {
+    "name": "Acme Corp",
+    "id": 12345,
+    "departments": [
+      {
+        "id": 1,
+        "name": "Department 1",
+        "employees": [
+          {
+            "id": 101,
+            "name": "Employee 1.1",
+            "role": "Manager",
+            "skills": [
+              "PHP",
+              "JavaScript"
+            ]
+          },
+          {
+            "id": 102,
+            "name": "Employee 1.2",
+            "role": "Staff",
+            "skills": [
+              "PHP",
+              "JavaScript",
+              "Python"
+            ]
+          },
+          {
+            "id": 103,
+            "name": "Employee 1.3",
+            "role": "Staff",
+            "skills": [
+              "PHP",
+              "JavaScript"
+            ]
+          },
+          {
+            "id": 104,
+            "name": "Employee 1.4",
+            "role": "Staff",
+            "skills": [
+              "PHP",
+              "JavaScript",
+              "Python"
+            ]
+          },
+          {
+            "id": 105,
+            "name": "Employee 1.5",
+            "role": "Staff",
+            "skills": [
+              "PHP",
+              "JavaScript"
+            ]
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "name": "Department 2",
+        "employees": [
+          {
+            "id": 201,
+            "name": "Employee 2.1",
+            "role": "Manager",
+            "skills": [
+              "PHP",
+              "JavaScript"
+            ]
+          },
+          {
+            "id": 202,
+            "name": "Employee 2.2",
+            "role": "Staff",
+            "skills": [
+              "PHP",
+              "JavaScript",
+              "Python"
+            ]
+          },
+          {
+            "id": 203,
+            "name": "Employee 2.3",
+            "role": "Staff",
+            "skills": [
+              "PHP",
+              "JavaScript"
+            ]
+          },
+          {
+            "id": 204,
+            "name": "Employee 2.4",
+            "role": "Staff",
+            "skills": [
+              "PHP",
+              "JavaScript",
+              "Python"
+            ]
+          },
+          {
+            "id": 205,
+            "name": "Employee 2.5",
+            "role": "Staff",
+            "skills": [
+              "PHP",
+              "JavaScript"
+            ]
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "name": "Department 3",
+        "employees": [
+          {
+            "id": 301,
+            "name": "Employee 3.1",
+            "role": "Manager",
+            "skills": [
+              "PHP",
+              "JavaScript"
+            ]
+          },
+          {
+            "id": 302,
+            "name": "Employee 3.2",
+            "role": "Staff",
+            "skills": [
+              "PHP",
+              "JavaScript",
+              "Python"
+            ]
+          },
+          {
+            "id": 303,
+            "name": "Employee 3.3",
+            "role": "Staff",
+            "skills": [
+              "PHP",
+              "JavaScript"
+            ]
+          },
+          {
+            "id": 304,
+            "name": "Employee 3.4",
+            "role": "Staff",
+            "skills": [
+              "PHP",
+              "JavaScript",
+              "Python"
+            ]
+          },
+          {
+            "id": 305,
+            "name": "Employee 3.5",
+            "role": "Staff",
+            "skills": [
+              "PHP",
+              "JavaScript"
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

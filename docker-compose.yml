@@ -1,0 +1,71 @@
+services:
+  php:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        PHP_VERSION: ${PHP_VERSION:-8.0}
+        COMPOSER_VERSION: ${COMPOSER_VERSION:-2.9.2}
+        USER_ID: ${USER_ID:-1000}
+        GROUP_ID: ${GROUP_ID:-1000}
+    container_name: php-dev
+    hostname: php-dev
+
+    # Keep container running
+    tty: true
+    stdin_open: true
+
+    # Volumes
+    volumes:
+      # Mount your project directory
+      - ./:/app:delegated
+
+      # Persist composer cache
+      - composer-cache:/home/app/.composer
+
+      # Optional: persist bash history
+      - bash-history:/home/app
+
+    # Environment variables
+    environment:
+      - PHP_VERSION=${PHP_VERSION:-8.0}
+      - COMPOSER_VERSION=${COMPOSER_VERSION:-2.9.2}
+      - TZ=${TIMEZONE:-UTC}
+      - XDEBUG_MODE=${XDEBUG_MODE:-off}
+
+    # Networks
+    networks:
+      - php-network
+
+    # Health check
+    healthcheck:
+      test: ["CMD", "php", "-v"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+
+    # Restart policy
+    restart: unless-stopped
+
+    # Working directory
+    working_dir: /app
+
+# Named volumes for persistence
+volumes:
+  composer-cache:
+    driver: local
+    name: php-composer-cache
+
+  bash-history:
+    driver: local
+    name: php-bash-history
+
+# Custom network
+networks:
+  php-network:
+    driver: bridge
+    name: php-dev-network
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

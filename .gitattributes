@@ -1,0 +1,43 @@
+# Export-ignore: Exclude files from git archives (git archive, GitHub releases)
+
+# Development and testing files
+/tests              export-ignore
+/benchmarks         export-ignore
+/examples           export-ignore
+/tasks              export-ignore
+/.claude            export-ignore
+
+# Build and deployment
+/build              export-ignore
+/vendor             export-ignore
+
+# CI/CD and GitHub
+/.github            export-ignore
+
+# IDE and editor configs
+/.idea              export-ignore
+.editorconfig       export-ignore
+
+# Development environment
+.env                export-ignore
+.env.example        export-ignore
+Dockerfile          export-ignore
+docker-compose.yml  export-ignore
+
+# Development documentation
+DEVELOPMENT.md      export-ignore
+README.md           export-ignore
+CHANGELOG.md        export-ignore
+
+# Code quality and testing configs
+phpstan.neon.dist   export-ignore
+phpunit.xml.dist    export-ignore
+rector.php          export-ignore
+peck.json           export-ignore
+.php_cs             export-ignore
+.php-cs-fixer.php   export-ignore
+
+# Git files
+.gitattributes      export-ignore
+.gitignore          export-ignore
+
