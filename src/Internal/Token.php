@@ -12,7 +12,7 @@ namespace JsonStream\Internal;
  *
  * @internal
  */
-final readonly class Token
+final class Token
 {
     /**
      * @param  TokenType  $type  Token type
@@ -21,9 +21,9 @@ final readonly class Token
      * @param  int  $column  Column number (0-based, add 1 when displaying to user)
      */
     public function __construct(
-        public TokenType $type,
-        public mixed $value,
-        public int $line,
-        public int $column
+        public readonly TokenType $type,
+        public readonly mixed $value,
+        public readonly int $line,
+        public readonly int $column
     ) {}
 }

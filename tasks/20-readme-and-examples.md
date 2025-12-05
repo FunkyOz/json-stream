@@ -25,7 +25,7 @@ description: Create comprehensive README.md with quick start guide, usage exampl
 - Iterator-based API
 - JSONPath support
 - Bi-directional (read/write)
-- Type safety (PHP 8.0+)
+- Type safety (PHP 8.1+)
 
 ### 3. Installation
 ```bash
@@ -58,7 +58,7 @@ Based on API_SIGNATURE.md Examples section:
 - When to use streaming vs readAll()
 
 ### 8. Requirements
-- PHP >= 8.0
+- PHP >= 8.1
 - No external dependencies
 
 ### 9. Testing

@@ -18,7 +18,7 @@ This project uses Docker Compose for development to ensure consistency across en
 
 2. **Configure environment variables** (optional):
    Edit `.env` to customize:
-   - `PHP_VERSION` - PHP version (default: 8.0, supports 8.0-8.5)
+   - `PHP_VERSION` - PHP version (default: 8.1, supports 8.1-8.5)
    - `COMPOSER_VERSION` - Composer version (default: 2.9.2)
    - `USER_ID` - Your user ID for file permissions (default: 1000)
    - `GROUP_ID` - Your group ID for file permissions (default: 1000)
@@ -66,7 +66,6 @@ docker compose exec php composer tests:unit
 docker compose exec php composer tests:types
 docker compose exec php composer tests:lint
 docker compose exec php composer tests:type-coverage
-docker compose exec php composer tests:typos
 docker compose exec php composer tests:refactor
 ```
 
@@ -160,5 +159,4 @@ json-stream-php/
 - **100% type coverage** required (all parameters and return types)
 - **PSR-12** coding standards enforced by Laravel Pint
 - **PHPStan** level max for static analysis
-- **No typos** in code or documentation
 - **Rector** suggestions must be addressed

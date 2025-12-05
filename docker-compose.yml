@@ -4,7 +4,7 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        PHP_VERSION: ${PHP_VERSION:-8.0}
+        PHP_VERSION: ${PHP_VERSION:-8.1}
         COMPOSER_VERSION: ${COMPOSER_VERSION:-2.9.2}
         USER_ID: ${USER_ID:-1000}
         GROUP_ID: ${GROUP_ID:-1000}
@@ -27,11 +27,8 @@ services:
       - bash-history:/home/app
 
     # Environment variables
-    environment:
-      - PHP_VERSION=${PHP_VERSION:-8.0}
-      - COMPOSER_VERSION=${COMPOSER_VERSION:-2.9.2}
-      - TZ=${TIMEZONE:-UTC}
-      - XDEBUG_MODE=${XDEBUG_MODE:-off}
+    env_file:
+      - .env
 
     # Networks
     networks:

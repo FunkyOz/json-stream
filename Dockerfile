@@ -1,5 +1,4 @@
-# Global ARG for PHP version (supported: 8.0, 8.1, 8.2, 8.3, 8.4, 8.5)
-ARG PHP_VERSION=8.0
+ARG PHP_VERSION=8.1
 
 FROM php:${PHP_VERSION}-cli-alpine
 

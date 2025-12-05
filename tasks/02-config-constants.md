@@ -31,5 +31,5 @@ See API_SIGNATURE.md lines 1465-1520
 ## Acceptance Criteria
 - [x] Config class created with proper namespace
 - [x] All constants defined as per specification
-- [x] Constants are properly typed (PHP 8.0+)
+- [x] Constants are properly typed (PHP 8.1+)
 - [x] Class is documented with PHPDoc

@@ -259,7 +259,8 @@ final class BufferManager
             return false;
         }
 
-        // Read new chunk
+        assert($this->bufferSize > 0);
+
         $data = fread($this->stream, $this->bufferSize);
 
         if ($data === false) {

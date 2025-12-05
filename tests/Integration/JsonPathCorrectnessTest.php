@@ -4,6 +4,44 @@ declare(strict_types=1);
 
 use JsonStream\Reader\StreamReader;
 
+beforeEach(function (): void {
+    $this->simpleObject = '{"name": "Alice", "age": 30, "city": "NYC"}';
+    $this->simpleArray = '[1, 2, 3, 4, 5]';
+    $this->nestedObject = '{
+        "user": {
+            "profile": {
+                "name": "Bob",
+                "email": "bob@example.com"
+            }
+        }
+    }';
+    $this->arrayOfObjects = '{
+        "users": [
+            {"name": "Alice", "age": 25},
+            {"name": "Bob", "age": 30},
+            {"name": "Charlie", "age": 35}
+        ]
+    }';
+    $this->complexNested = '{
+        "store": {
+            "book": [
+                {
+                    "title": "Book 1",
+                    "price": 10,
+                    "author": {"name": "Alice", "country": "US"}
+                },
+                {
+                    "title": "Book 2",
+                    "price": 20,
+                    "author": {"name": "Bob", "country": "UK"}
+                }
+            ],
+            "bicycle": {"color": "red", "price": 199}
+        },
+        "owner": {"name": "Charlie"}
+    }';
+});
+
 /**
  * Comprehensive JSONPath Correctness Validation Test Suite
  *
@@ -21,61 +59,23 @@ use JsonStream\Reader\StreamReader;
  * correct behavior according to JSONPath specification.
  */
 describe('JSONPath Correctness Validation', function (): void {
-    // Test data used across multiple tests
-    beforeEach(function (): void {
-        $this->simpleObject = '{"name": "Alice", "age": 30, "city": "NYC"}';
-        $this->simpleArray = '[1, 2, 3, 4, 5]';
-        $this->nestedObject = '{
-            "user": {
-                "profile": {
-                    "name": "Bob",
-                    "email": "bob@example.com"
-                }
-            }
-        }';
-        $this->arrayOfObjects = '{
-            "users": [
-                {"name": "Alice", "age": 25},
-                {"name": "Bob", "age": 30},
-                {"name": "Charlie", "age": 35}
-            ]
-        }';
-        $this->complexNested = '{
-            "store": {
-                "book": [
-                    {
-                        "title": "Book 1",
-                        "price": 10,
-                        "author": {"name": "Alice", "country": "US"}
-                    },
-                    {
-                        "title": "Book 2",
-                        "price": 20,
-                        "author": {"name": "Bob", "country": "UK"}
-                    }
-                ],
-                "bicycle": {"color": "red", "price": 199}
-            },
-            "owner": {"name": "Charlie"}
-        }';
-    });
 
     describe('1. Root Operator ($)', function (): void {
         it('returns entire document for object', function (): void {
             $reader = StreamReader::fromString($this->simpleObject)->withPath('$');
             $result = $reader->readAll();
 
-            expect($result)->toBeArray();
-            expect($result)->toHaveKey('name');
-            expect($result['name'])->toBe('Alice');
+            expect($result)->toBeArray()
+                ->and($result)->toHaveKey('name')
+                ->and($result['name'])->toBe('Alice');
         });
 
         it('returns entire document for array', function (): void {
             $reader = StreamReader::fromString($this->simpleArray)->withPath('$');
             $result = $reader->readAll();
 
-            expect($result)->toBeArray();
-            expect($result)->toBe([1, 2, 3, 4, 5]);
+            expect($result)->toBeArray()
+                ->and($result)->toBe([1, 2, 3, 4, 5]);
         });
 
         it('works as starting point for all paths', function (): void {
@@ -244,8 +244,8 @@ describe('JSONPath Correctness Validation', function (): void {
                 ->withPath('$.users[1]');
             $result = $reader->readAll();
 
-            expect($result)->toBeArray();
-            expect($result['name'])->toBe('Bob');
+            expect($result)->toBeArray()
+                ->and($result['name'])->toBe('Bob');
         });
     });
 
@@ -323,10 +323,10 @@ describe('JSONPath Correctness Validation', function (): void {
             $reader = StreamReader::fromString($this->simpleObject)->withPath('$.*');
             $items = iterator_to_array($reader->readItems());
 
-            expect($items)->toHaveCount(3);
-            expect($items)->toContain('Alice');
-            expect($items)->toContain(30);
-            expect($items)->toContain('NYC');
+            expect($items)->toHaveCount(3)
+                ->and($items)->toContain('Alice')
+                ->and($items)->toContain(30)
+                ->and($items)->toContain('NYC');
         });
 
         it('chains multiple wildcards', function (): void {
@@ -364,10 +364,10 @@ describe('JSONPath Correctness Validation', function (): void {
                 ->withPath('$..name');
             $items = iterator_to_array($reader->readItems());
 
-            expect($items)->toContain('Alice');
-            expect($items)->toContain('Bob');
-            expect($items)->toContain('Charlie');
-            expect($items)->toHaveCount(3);
+            expect($items)->toContain('Alice')
+                ->and($items)->toContain('Bob')
+                ->and($items)->toContain('Charlie')
+                ->and($items)->toHaveCount(3);
         });
 
         it('works with wildcards', function (): void {
@@ -404,9 +404,9 @@ describe('JSONPath Correctness Validation', function (): void {
                 ->withPath('$..price');
             $items = iterator_to_array($reader->readItems());
 
-            expect($items)->toContain(10);
-            expect($items)->toContain(20);
-            expect($items)->toContain(199);
+            expect($items)->toContain(10)
+                ->and($items)->toContain(20)
+                ->and($items)->toContain(199);
         });
 
         it('returns empty when no matches at any depth', function (): void {
@@ -424,8 +424,8 @@ describe('JSONPath Correctness Validation', function (): void {
                 ->withPath('$.users[?(@.name == "Bob")]');
             $items = iterator_to_array($reader->readItems());
 
-            expect($items)->toHaveCount(1);
-            expect($items[0]['name'])->toBe('Bob');
+            expect($items)->toHaveCount(1)
+                ->and($items[0]['name'])->toBe('Bob');
         });
 
         it('filters with inequality operator !=', function (): void {
@@ -433,9 +433,9 @@ describe('JSONPath Correctness Validation', function (): void {
                 ->withPath('$.users[?(@.name != "Bob")]');
             $items = iterator_to_array($reader->readItems());
 
-            expect($items)->toHaveCount(2);
-            expect(array_column($items, 'name'))->toContain('Alice');
-            expect(array_column($items, 'name'))->toContain('Charlie');
+            expect($items)->toHaveCount(2)
+                ->and(array_column($items, 'name'))->toContain('Alice')
+                ->and(array_column($items, 'name'))->toContain('Charlie');
         });
 
         it('filters with less than operator <', function (): void {
@@ -443,8 +443,8 @@ describe('JSONPath Correctness Validation', function (): void {
                 ->withPath('$.users[?(@.age < 30)]');
             $items = iterator_to_array($reader->readItems());
 
-            expect($items)->toHaveCount(1);
-            expect($items[0]['name'])->toBe('Alice');
+            expect($items)->toHaveCount(1)
+                ->and($items[0]['name'])->toBe('Alice');
         });
 
         it('filters with greater than operator >', function (): void {
@@ -452,8 +452,8 @@ describe('JSONPath Correctness Validation', function (): void {
                 ->withPath('$.users[?(@.age > 30)]');
             $items = iterator_to_array($reader->readItems());
 
-            expect($items)->toHaveCount(1);
-            expect($items[0]['name'])->toBe('Charlie');
+            expect($items)->toHaveCount(1)
+                ->and($items[0]['name'])->toBe('Charlie');
         });
 
         it('filters with less than or equal <=', function (): void {
@@ -477,8 +477,8 @@ describe('JSONPath Correctness Validation', function (): void {
                 ->withPath('$.store.book[?(@.author.country == "US")]');
             $items = iterator_to_array($reader->readItems());
 
-            expect($items)->toHaveCount(1);
-            expect($items[0]['title'])->toBe('Book 1');
+            expect($items)->toHaveCount(1)
+                ->and($items[0]['title'])->toBe('Book 1');
         });
 
         it('handles string comparisons', function (): void {
@@ -486,8 +486,8 @@ describe('JSONPath Correctness Validation', function (): void {
                 ->withPath('$.users[?(@.name == "Alice")]');
             $items = iterator_to_array($reader->readItems());
 
-            expect($items)->toHaveCount(1);
-            expect($items[0]['age'])->toBe(25);
+            expect($items)->toHaveCount(1)
+                ->and($items[0]['age'])->toBe(25);
         });
 
         it('returns empty for filter on non-array', function (): void {
@@ -535,9 +535,9 @@ describe('JSONPath Correctness Validation', function (): void {
                 ->withPath('$.data[*].items[?(@.x > 2)]');
             $items = iterator_to_array($reader->readItems());
 
-            expect(count($items))->toBe(2);
-            expect($items[0]['x'])->toBe(3);
-            expect($items[1]['x'])->toBe(4);
+            expect(count($items))->toBe(2)
+                ->and($items[0]['x'])->toBe(3)
+                ->and($items[1]['x'])->toBe(4);
         });
 
         it('combines recursive descent with filter', function (): void {
@@ -545,8 +545,8 @@ describe('JSONPath Correctness Validation', function (): void {
                 ->withPath('$..book[?(@.price < 15)]');
             $items = iterator_to_array($reader->readItems());
 
-            expect($items)->toHaveCount(1);
-            expect($items[0]['title'])->toBe('Book 1');
+            expect($items)->toHaveCount(1)
+                ->and($items[0]['title'])->toBe('Book 1');
         });
 
         it('handles complex nested paths', function (): void {

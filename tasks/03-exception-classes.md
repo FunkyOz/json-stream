@@ -46,6 +46,6 @@ See API_SIGNATURE.md lines 1313-1462
 - [x] All four exception classes implemented
 - [x] Proper inheritance hierarchy
 - [x] All methods from API spec implemented
-- [x] Full type hints (PHP 8.0+)
+- [x] Full type hints (PHP 8.1+)
 - [x] PHPDoc documentation
 - [x] Unit tests for exception classes
