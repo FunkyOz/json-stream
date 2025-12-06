@@ -25,5 +25,6 @@ final class Token
         public readonly mixed $value,
         public readonly int $line,
         public readonly int $column
-    ) {}
+    ) {
+    }
 }

@@ -53,7 +53,7 @@ final class PathParser
             throw $this->createException('JSONPath must start with $');
         }
 
-        $segments[] = new RootSegment;
+        $segments[] = new RootSegment();
 
         // Parse remaining segments
         while (! $this->isAtEnd()) {

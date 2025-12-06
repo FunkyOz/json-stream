@@ -42,10 +42,10 @@
         }
     },
     "scripts": {
-        "lint": "pint",
+        "lint": "pint --preset psr12",
         "refactor": "rector",
         "tests:type-coverage": "pest --type-coverage --exactly=100",
-        "tests:lint": "pint --test",
+        "tests:lint": "pint --preset psr12 --test",
         "tests:unit": "pest --testsuite unit --bail",
         "tests:integration": "pest --testsuite integration --bail",
         "tests:types": "phpstan",

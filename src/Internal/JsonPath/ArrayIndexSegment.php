@@ -16,7 +16,8 @@ final class ArrayIndexSegment extends PathSegment
      */
     public function __construct(
         private readonly int $index
-    ) {}
+    ) {
+    }
 
     public function matches(string|int $key, mixed $value, int $depth): bool
     {

@@ -5,7 +5,7 @@ use JsonStream\Internal\JsonPath\PathParser;
 
 describe('PathEvaluator', function (): void {
     it('matches root path at depth 0', function (): void {
-        $parser = new PathParser;
+        $parser = new PathParser();
         $expression = $parser->parse('$');
         $evaluator = new PathEvaluator($expression);
 
@@ -13,7 +13,7 @@ describe('PathEvaluator', function (): void {
     });
 
     it('matches simple property path', function (): void {
-        $parser = new PathParser;
+        $parser = new PathParser();
         $expression = $parser->parse('$.users');
         $evaluator = new PathEvaluator($expression);
 
@@ -22,7 +22,7 @@ describe('PathEvaluator', function (): void {
     });
 
     it('does not match wrong property', function (): void {
-        $parser = new PathParser;
+        $parser = new PathParser();
         $expression = $parser->parse('$.users');
         $evaluator = new PathEvaluator($expression);
 
@@ -31,7 +31,7 @@ describe('PathEvaluator', function (): void {
     });
 
     it('matches nested property path', function (): void {
-        $parser = new PathParser;
+        $parser = new PathParser();
         $expression = $parser->parse('$.store.book');
         $evaluator = new PathEvaluator($expression);
 
@@ -43,7 +43,7 @@ describe('PathEvaluator', function (): void {
     });
 
     it('matches array index', function (): void {
-        $parser = new PathParser;
+        $parser = new PathParser();
         $expression = $parser->parse('$.users[0]');
         $evaluator = new PathEvaluator($expression);
 
@@ -53,7 +53,7 @@ describe('PathEvaluator', function (): void {
     });
 
     it('does not match wrong array index', function (): void {
-        $parser = new PathParser;
+        $parser = new PathParser();
         $expression = $parser->parse('$.users[0]');
         $evaluator = new PathEvaluator($expression);
 
@@ -63,7 +63,7 @@ describe('PathEvaluator', function (): void {
     });
 
     it('matches wildcard', function (): void {
-        $parser = new PathParser;
+        $parser = new PathParser();
         $expression = $parser->parse('$.users[*]');
         $evaluator = new PathEvaluator($expression);
 
@@ -77,7 +77,7 @@ describe('PathEvaluator', function (): void {
     });
 
     it('matches array slice', function (): void {
-        $parser = new PathParser;
+        $parser = new PathParser();
         $expression = $parser->parse('$.users[0:3]');
         $evaluator = new PathEvaluator($expression);
 
@@ -96,7 +96,7 @@ describe('PathEvaluator', function (): void {
     });
 
     it('gets current path string', function (): void {
-        $parser = new PathParser;
+        $parser = new PathParser();
         $expression = $parser->parse('$.store.book');
         $evaluator = new PathEvaluator($expression);
 
@@ -110,7 +110,7 @@ describe('PathEvaluator', function (): void {
     });
 
     it('can reset state', function (): void {
-        $parser = new PathParser;
+        $parser = new PathParser();
         $expression = $parser->parse('$.users');
         $evaluator = new PathEvaluator($expression);
 

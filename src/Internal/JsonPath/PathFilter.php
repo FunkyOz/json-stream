@@ -15,7 +15,8 @@ final class PathFilter
 {
     public function __construct(
         private readonly PathEvaluator $evaluator
-    ) {}
+    ) {
+    }
 
     /**
      * Extract values matching the path from parsed JSON

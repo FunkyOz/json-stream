@@ -35,7 +35,7 @@ describe('JsonStream', function (): void {
         [null],
         [1],
         [true],
-        [new stdClass],
+        [new stdClass()],
     ]);
 
     it('throw an parse exception', function (mixed $input): void {

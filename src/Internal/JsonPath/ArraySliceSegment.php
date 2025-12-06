@@ -20,7 +20,8 @@ final class ArraySliceSegment extends PathSegment
         private readonly ?int $start = null,
         private readonly ?int $end = null,
         private readonly int $step = 1
-    ) {}
+    ) {
+    }
 
     public function matches(string|int $key, mixed $value, int $depth): bool
     {

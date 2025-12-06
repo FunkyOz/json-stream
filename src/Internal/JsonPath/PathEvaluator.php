@@ -25,7 +25,8 @@ final class PathEvaluator
      */
     public function __construct(
         private readonly PathExpression $expression
-    ) {}
+    ) {
+    }
 
     /**
      * Enter a new level (object property or array element)

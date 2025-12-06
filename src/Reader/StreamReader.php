@@ -64,7 +64,7 @@ class StreamReader
 
         // Parse JSONPath expression if provided
         if ($jsonPath !== null) {
-            $parser = new PathParser;
+            $parser = new PathParser();
             $expression = $parser->parse($jsonPath);
             $this->pathEvaluator = new PathEvaluator($expression);
         }

@@ -13,5 +13,5 @@ if ($currentMemory < 256) {
 }
 
 // Run benchmarks
-$benchmark = new PerformanceBenchmark;
+$benchmark = new PerformanceBenchmark();
 $benchmark->run();

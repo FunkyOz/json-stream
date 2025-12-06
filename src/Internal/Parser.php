@@ -33,7 +33,8 @@ final class Parser
         private readonly Lexer $lexer,
         private readonly int $maxDepth = Config::DEFAULT_MAX_DEPTH,
         private readonly ?PathEvaluator $pathEvaluator = null
-    ) {}
+    ) {
+    }
 
     /**
      * Parse any JSON value

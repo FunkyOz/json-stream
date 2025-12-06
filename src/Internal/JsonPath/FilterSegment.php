@@ -16,7 +16,8 @@ final class FilterSegment extends PathSegment
      */
     public function __construct(
         private readonly string $expression
-    ) {}
+    ) {
+    }
 
     public function matches(string|int $key, mixed $value, int $depth): bool
     {

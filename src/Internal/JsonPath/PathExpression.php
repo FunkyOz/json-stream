@@ -24,7 +24,8 @@ final class PathExpression
     public function __construct(
         private readonly string $originalPath,
         private readonly array $segments
-    ) {}
+    ) {
+    }
 
     /**
      * Get the original JSONPath string

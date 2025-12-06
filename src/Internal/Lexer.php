@@ -23,7 +23,8 @@ final class Lexer
      */
     public function __construct(
         private readonly BufferManager $buffer
-    ) {}
+    ) {
+    }
 
     /**
      * Get next token from stream
