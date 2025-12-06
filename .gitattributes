@@ -1,5 +1,3 @@
-# Export-ignore: Exclude files from git archives (git archive, GitHub releases)
-
 # Development and testing files
 /tests              export-ignore
 /benchmarks         export-ignore
