@@ -17,7 +17,7 @@ jobs:
       fail-fast: true
       matrix:
         os: [ ubuntu-latest, macos-latest, windows-latest ]
-        php: [ 8.1, 8.2, 8.3, 8.4, 8.5 ]
+        php: [ 8.1, 8.2, 8.3, 8.4 ]
         dependency-version: [ prefer-lowest, prefer-stable ]
     name: Check style (php${{ matrix.php }} - ${{ matrix.os }} - ${{ matrix.dependency-version }})
     steps:
@@ -41,7 +41,7 @@ jobs:
       fail-fast: true
       matrix:
         os: [ ubuntu-latest, macos-latest, windows-latest ]
-        php: [ 8.1, 8.2, 8.3, 8.4, 8.5 ]
+        php: [ 8.1, 8.2, 8.3, 8.4 ]
         dependency-version: [ prefer-lowest, prefer-stable ]
     name: Check refactor (php${{ matrix.php }} - ${{ matrix.os }} - ${{ matrix.dependency-version }})
     steps:
@@ -66,7 +66,7 @@ jobs:
       fail-fast: true
       matrix:
         os: [ ubuntu-latest, macos-latest, windows-latest ]
-        php: [ 8.1, 8.2, 8.3, 8.4, 8.5 ]
+        php: [ 8.1, 8.2, 8.3, 8.4 ]
         dependency-version: [ prefer-lowest, prefer-stable ]
     name: Check types (php${{ matrix.php }} - ${{ matrix.os }} - ${{ matrix.dependency-version }})
     steps:
@@ -91,7 +91,7 @@ jobs:
       fail-fast: true
       matrix:
         os: [ ubuntu-latest, macos-latest, windows-latest ]
-        php: [ 8.1, 8.2, 8.3, 8.4, 8.5 ]
+        php: [ 8.1, 8.2, 8.3, 8.4 ]
         dependency-version: [ prefer-lowest, prefer-stable ]
     name: Run tests (php${{ matrix.php }} - ${{ matrix.os }} - ${{ matrix.dependency-version }})
     steps:

@@ -24,9 +24,11 @@ RUN apk add --no-cache --virtual .build-deps \
     make \
     linux-headers
 
-# Install Xdebug
-RUN pecl install xdebug \
-    && docker-php-ext-enable xdebug
+# Install Xdebug (optional based on XDEBUG_MODE)
+ARG XDEBUG_MODE=off
+RUN if [ "${XDEBUG_MODE}" != "0" ] && [ "${XDEBUG_MODE}" != "off" ]; then \
+    pecl install xdebug && docker-php-ext-enable xdebug; \
+fi
 
 # Remove build dependencies
 RUN apk del .build-deps

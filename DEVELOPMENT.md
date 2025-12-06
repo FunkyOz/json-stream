@@ -18,7 +18,7 @@ This project uses Docker Compose for development to ensure consistency across en
 
 2. **Configure environment variables** (optional):
    Edit `.env` to customize:
-   - `PHP_VERSION` - PHP version (default: 8.1, supports 8.1-8.5)
+   - `PHP_VERSION` - PHP version (default: 8.1, supports 8.1-8.4)
    - `COMPOSER_VERSION` - Composer version (default: 2.9.2)
    - `USER_ID` - Your user ID for file permissions (default: 1000)
    - `GROUP_ID` - Your group ID for file permissions (default: 1000)
