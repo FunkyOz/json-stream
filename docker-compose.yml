@@ -8,6 +8,7 @@ services:
         COMPOSER_VERSION: ${COMPOSER_VERSION:-2.9.2}
         USER_ID: ${USER_ID:-1000}
         GROUP_ID: ${GROUP_ID:-1000}
+        XDEBUG_MODE: ${XDEBUG_MODE:-off}
     container_name: php-dev
     hostname: php-dev
 

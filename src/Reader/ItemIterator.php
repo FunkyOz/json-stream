@@ -6,6 +6,7 @@ namespace JsonStream\Reader;
 
 use Generator;
 use Iterator;
+use JsonStream\Exception\ParseException;
 use JsonStream\Internal\TokenType;
 
 /**
@@ -150,13 +151,13 @@ class ItemIterator implements Iterator
         }
 
         // Cast key based on root type
-        if ($this->rootType === 'object') {
-            // @phpstan-ignore cast.string
-            $this->key = (string) $this->generator->key();
-        } else {
+        if ($this->rootType === 'object' && is_string($this->generator->key())) {
+            $this->key = $this->generator->key();
+        } elseif (is_int($this->generator->key())) {
             // Array type or filtered results
-            // @phpstan-ignore cast.int
-            $this->key = (int) $this->generator->key();
+            $this->key = $this->generator->key();
+        } else {
+            throw new ParseException('Invalid key type');
         }
 
         $this->current = $this->generator->current();

@@ -50,7 +50,7 @@
         "tests:integration": "pest --testsuite integration --bail",
         "tests:types": "phpstan",
         "tests:refactor": "rector --dry-run",
-        "tests:coverage": "pest --coverage --exactly=100",
+        "tests:coverage": "pest --coverage --min=100",
         "tests:benchmark": "php benchmarks/run.php",
         "tests": [
             "@tests:lint",

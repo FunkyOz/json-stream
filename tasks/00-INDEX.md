@@ -5,12 +5,12 @@ This directory contains all implementation tasks for the JsonStream PHP library,
 ## Overview
 
 **Total Tasks:** 36
-**Completed Tasks:** 26 (72%)
-**Current Status:** v1.0 Release Ready - Reader-Only | Coverage: 86.6% -> Target: 100%
+**Completed Tasks:** 27 (75%)
+**Current Status:** v1.0 Release Ready - Reader-Only | Coverage: 88.2% -> Target: 100%
 **Estimated Timeline:** 8-12 weeks for complete implementation + 8-10 hours for 100% coverage
 
 **All Core Tasks Complete**: JsonStream v1.0 is ready for release as a reader-only library.
-**Phase 9 In Progress**: Working towards 100% code coverage (currently 86.6%)
+**Phase 9 In Progress**: Working towards 100% code coverage (currently 88.2%)
 **Phase 8 Complete**: Writer feature preserved in `feature/writer` branch. Main branch contains reader-only functionality.
 **Phase 7 Complete**: All core implementation, testing, and code review tasks complete. Production-ready library with 100% type coverage, comprehensive documentation, and all quality checks passing.
 **Phase 6 Testing Complete**: All testing tasks (16-19) complete with 100% code coverage, 511 total tests passing, and comprehensive performance benchmarks.
@@ -156,11 +156,11 @@ Final preparations for v1.0 release.
 
 ## Phase 9: 100% Code Coverage (High Priority)
 
-Achieve 100% code coverage for all production code. Current coverage: 86.6%.
+Achieve 100% code coverage for all production code. Current coverage: 88.2%.
 
 | # | Task | Priority | Complexity | Status | Dependencies |
 |---|------|----------|------------|--------|--------------|
-| 27 | [Test Exception Classes](27-test-exception-classes.md) | Critical | Low | `todo` | None |
+| 27 | [Test Exception Classes](27-test-exception-classes.md) | Critical | Low | `done` | None |
 | 28 | [Complete BufferManager Coverage](28-complete-buffermanager-coverage.md) | High | Low | `todo` | Task 27 |
 | 29 | [Complete Lexer Coverage](29-complete-lexer-coverage.md) | High | Low | `todo` | Task 27 |
 | 30 | [Complete Parser Coverage](30-complete-parser-coverage.md) | High | Medium | `todo` | Task 27 |

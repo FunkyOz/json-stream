@@ -7,6 +7,7 @@ namespace JsonStream\Reader;
 use Countable;
 use Generator;
 use Iterator;
+use JsonStream\Exception\ParseException;
 
 /**
  * Iterator for JSON objects
@@ -140,8 +141,10 @@ class ObjectIterator implements Countable, Iterator
             return;
         }
 
-        // @phpstan-ignore cast.string
-        $this->key = (string) $this->generator->key();
+        if (!is_string($this->generator->key())) {
+            throw new ParseException('Invalid key type');
+        }
+        $this->key = $this->generator->key();
         $this->current = $this->generator->current();
         $this->valid = true;
 
