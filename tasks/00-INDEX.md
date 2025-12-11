@@ -4,11 +4,12 @@ This directory contains all implementation tasks for the JsonStream PHP library,
 
 ## Overview
 
-**Total Tasks:** 36
-**Completed Tasks:** 27 (75%)
-**Current Status:** v1.0 Release Ready - Reader-Only | Coverage: 88.2% -> Target: 100%
-**Estimated Timeline:** 8-12 weeks for complete implementation + 8-10 hours for 100% coverage
+**Total Tasks:** 49
+**Completed Tasks:** 27 (55%)
+**Current Status:** v1.0 Release Ready - Reader-Only | Analysis Report Fixes Planned
+**Estimated Timeline:** 8-12 weeks for complete implementation + 8-10 hours for 100% coverage + Analysis fixes
 
+**Analysis Report Fixes Added**: Phase 10 added with 13 tasks to address issues found in comprehensive code analysis (ANALYSIS_REPORT.md, Dec 8, 2025)
 **All Core Tasks Complete**: JsonStream v1.0 is ready for release as a reader-only library.
 **Phase 9 In Progress**: Working towards 100% code coverage (currently 88.2%)
 **Phase 8 Complete**: Writer feature preserved in `feature/writer` branch. Main branch contains reader-only functionality.
@@ -176,6 +177,51 @@ Achieve 100% code coverage for all production code. Current coverage: 88.2%.
 
 ---
 
+## Phase 10: Analysis Report Fixes (Mixed Priority)
+
+Address issues found in comprehensive code analysis (ANALYSIS_REPORT.md, Dec 8, 2025). Organized by priority: Critical issues first, then security/robustness, then optimizations.
+
+### Phase 10.1: Critical Issues
+
+| # | Task | Priority | Complexity | Status | Dependencies |
+|---|------|----------|------------|--------|--------------|
+| 37 | [Fix Stream Position in Fluent Methods](37-stream-position-fluent-methods.md) | Critical | Medium | `todo` | None |
+| 38 | [Add UTF-16 Lone Surrogate Validation](38-utf16-surrogate-validation.md) | High | Low | `todo` | None |
+| 39 | [Document Negative Index Streaming Limitations](39-negative-index-streaming-mode.md) | High | Medium | `todo` | None |
+
+**Sub-Phase Duration:** Priority for v1.0.1
+**Deliverables:** Stream position handling, UTF-8 validity, streaming documentation
+
+### Phase 10.2: Security & Robustness
+
+| # | Task | Priority | Complexity | Status | Dependencies |
+|---|------|----------|------------|--------|--------------|
+| 40 | [Add Integer Overflow Handling](40-integer-overflow-handling.md) | Medium | Medium | `todo` | None |
+| 41 | [Add ObjectIterator Cache Limits](41-objectiterator-cache-limits.md) | Medium | Medium | `todo` | Task 02 |
+| 42 | [Add PathFilter Depth Tracking](42-pathfilter-depth-tracking.md) | Medium | Medium | `todo` | None |
+| 48 | [Prevent ReDoS in Filter Expressions](48-redos-filter-expression.md) | Medium | Low | `todo` | None |
+
+**Sub-Phase Duration:** For v1.0.1 or v1.1.0
+**Deliverables:** Robust number parsing, bounded memory, depth limits, ReDoS protection
+
+### Phase 10.3: Code Quality & Optimization
+
+| # | Task | Priority | Complexity | Status | Dependencies |
+|---|------|----------|------------|--------|--------------|
+| 43 | [Optimize isAssociativeArray() Method](43-optimize-associative-array-check.md) | Low | Low | `todo` | None |
+| 44 | [Cache PathExpression Analysis](44-cache-pathexpression-analysis.md) | Low | Low | `todo` | Task 39 |
+| 45 | [Review PHPStan Ignore Comments](45-review-phpstan-ignores.md) | Low | Low-Medium | `todo` | None |
+| 46 | [Set IOException File Path Consistently](46-ioexception-filepath-consistency.md) | Low | Low | `todo` | None |
+| 47 | [Remove Unused Config Constants](47-unused-config-constants.md) | Low | Low | `todo` | Task 26 |
+| 49 | [Optimize readChunk() Concatenation](49-optimize-readchunk-concatenation.md) | Low | Low | `todo` | None |
+
+**Sub-Phase Duration:** Can be deferred to v1.1.0 or v1.2.0
+**Deliverables:** Cleaner code, better performance, reduced technical debt
+
+**Overall Phase Duration:** ~2-3 weeks (depending on priorities)
+
+---
+
 ## Quick Reference
 
 ### Critical Path (Minimum Viable Product)
@@ -198,8 +244,16 @@ For production-ready implementation:
 
 ### Full Feature Set
 For complete implementation with all features:
-- All 22 tasks
-- **Total Duration:** ~10-12 weeks
+- All tasks (1-49)
+- **Total Duration:** ~10-12 weeks + analysis fixes
+
+### Analysis Report Fixes (Phase 10)
+**For v1.0.1 patch release:**
+- Tasks 37-39 (Critical issues) - Must fix
+- Tasks 40-42, 48 (Security/robustness) - Recommended
+
+**For v1.1.0 minor release:**
+- Tasks 43-47, 49 (Optimizations/cleanup) - Nice to have
 
 ### Recommended Order
 1. Start with Phase 1 (foundation)
@@ -238,10 +292,11 @@ For complete implementation with all features:
 
 ---
 
-**Last Updated:** 2025-12-05
-**Document Version:** 1.5
+**Last Updated:** 2025-12-11
+**Document Version:** 1.6
 
 ## Recent Changes
+- **2025-12-11**: Added Phase 10 (Analysis Report Fixes) - 13 new tasks (37-49) to address issues found in comprehensive code analysis (ANALYSIS_REPORT.md, Dec 8, 2025). Critical issues include stream position handling, UTF-16 validation, and negative index documentation. Security improvements include integer overflow handling, cache limits, and ReDoS prevention. Code quality improvements include optimizations and cleanup.
 - **2025-12-05**: **Completed Task 26** (Remove Writer for v1.0 Release) - Writer feature preserved in `feature/writer` branch, main branch is now reader-only. All tests passing, benchmarks working, v1.0 ready for release.
 - **2025-12-05**: Added Task 26 (Remove Writer for v1.0 Release) - Preserve writer in `feature/writer` branch and remove from main for reader-only v1.0 release
 - **2025-12-04**: Added Task 25 (Complex Pattern Streaming) - Low priority future optimization to extend streaming support to complex patterns like `$.users[*].name`, nested wildcards, and filter expressions
