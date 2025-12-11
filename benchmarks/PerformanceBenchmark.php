@@ -15,12 +15,29 @@ use JsonStream\Reader\StreamReader;
  */
 class PerformanceBenchmark
 {
+    private string $currentMemoryLimit;
+
     private const BUFFER_SIZES = [
         '8KB' => 8 * 1024,
         '16KB' => 16 * 1024,
         '32KB' => 32 * 1024,
         '64KB' => 64 * 1024,
     ];
+
+    public function __construct()
+    {
+        // CAVEAT: Convert memory_usage to MB
+        $currentMemory = memory_get_usage() / (1024 ** 2);
+        $currentMemoryLimit = ini_get('memory_limit');
+        if (false !== $currentMemoryLimit) {
+            $this->currentMemoryLimit = $currentMemoryLimit;
+        } else {
+            $this->currentMemoryLimit = '128M';
+        }
+        if ($currentMemory < 256) {
+            ini_set('memory_limit', '256M');
+        }
+    }
 
     private static function printTitle(string $title): void
     {
@@ -458,5 +475,10 @@ class PerformanceBenchmark
         }
 
         return sprintf('%6.2f %s', $time, $units[$i]);
+    }
+
+    public function __destruct()
+    {
+        ini_set('memory_limit', $this->currentMemoryLimit);
     }
 }

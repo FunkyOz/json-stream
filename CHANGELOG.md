@@ -34,7 +34,3 @@ Initial release of JsonStream PHP - a high-performance streaming JSON parser for
 - ~1.5-2x slower than `json_decode()` for small files
 - Constant ~100KB memory vs unbounded memory for `json_decode()`
 - Successfully processes multi-GB files that would fail with native functions
-
-### Note
-
-This v1.0 release focuses on **reading capabilities only**.

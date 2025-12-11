@@ -6,6 +6,113 @@ use JsonStream\Config;
 use JsonStream\Exception\IOException;
 use JsonStream\Internal\BufferManager;
 
+/**
+ * Custom stream wrapper that simulates fread failure
+ */
+class FailingStreamWrapper
+{
+    public $context;
+
+    private int $position = 0;
+
+    private string $data = 'test';
+
+    private bool $failNext = false;
+
+    public function stream_open($path, $mode, $options, &$opened_path): bool
+    {
+        return true;
+    }
+
+    public function stream_read($count): string|false
+    {
+        if ($this->failNext) {
+            return false; // Simulate read failure
+        }
+
+        // First read succeeds to fill initial buffer
+        if ($this->position >= strlen($this->data)) {
+            return '';
+        }
+
+        $chunk = substr($this->data, $this->position, $count);
+        $this->position += strlen($chunk);
+
+        // Mark to fail on next read (refill)
+        if ($this->position >= strlen($this->data)) {
+            $this->failNext = true;
+        }
+
+        return $chunk;
+    }
+
+    public function stream_eof(): bool
+    {
+        return $this->position >= strlen($this->data) && ! $this->failNext;
+    }
+
+    public function stream_stat(): array
+    {
+        return [];
+    }
+
+    public function stream_tell(): int
+    {
+        return $this->position;
+    }
+}
+
+/**
+ * Custom stream wrapper that reports as seekable but fails on seek
+ */
+class NonSeekableStreamWrapper
+{
+    public $context;
+
+    private int $position = 0;
+
+    private string $data = 'test data';
+
+    public function stream_open($path, $mode, $options, &$opened_path): bool
+    {
+        return true;
+    }
+
+    public function stream_read($count): string|false
+    {
+        if ($this->position >= strlen($this->data)) {
+            return '';
+        }
+
+        $chunk = substr($this->data, $this->position, min($count, strlen($this->data) - $this->position));
+        $this->position += strlen($chunk);
+
+        return $chunk;
+    }
+
+    public function stream_eof(): bool
+    {
+        return $this->position >= strlen($this->data);
+    }
+
+    public function stream_stat(): array
+    {
+        // Report as seekable
+        return ['seekable' => 1];
+    }
+
+    public function stream_tell(): int
+    {
+        return $this->position;
+    }
+
+    public function stream_seek($offset, $whence = SEEK_SET): bool
+    {
+        // Always fail on seek
+        return false;
+    }
+}
+
 describe('BufferManager', function (): void {
     it('reads bytes sequentially', function (): void {
         $stream = fopen('php://memory', 'r+');
@@ -100,6 +207,23 @@ describe('BufferManager', function (): void {
         expect($buffer->peek(5))->toBe('f');
     });
 
+    it('peek returns null beyond EOF after refill', function (): void {
+        $stream = fopen('php://memory', 'r+');
+        fwrite($stream, 'abc');
+        rewind($stream);
+
+        $buffer = new BufferManager($stream);
+
+        // Read to EOF
+        $buffer->readByte(); // 'a'
+        $buffer->readByte(); // 'b'
+        $buffer->readByte(); // 'c'
+
+        // Peek beyond EOF should return null (triggers refill, then returns null)
+        expect($buffer->peek())->toBeNull();
+        expect($buffer->peek(10))->toBeNull();
+    });
+
     it('reads chunks efficiently', function (): void {
         $stream = fopen('php://memory', 'r+');
         fwrite($stream, 'hello world');
@@ -168,6 +292,25 @@ describe('BufferManager', function (): void {
         $buffer->reset();
 
         expect(true)->toBeTrue(); // If we get here, no exception was thrown
+    });
+
+    it('throws IOException when fseek fails during reset', function (): void {
+        // Register a custom stream wrapper that reports as seekable but fails on seek
+        stream_wrapper_register('failseek', NonSeekableStreamWrapper::class);
+
+        $stream = fopen('failseek://test', 'r');
+
+        try {
+            $buffer = new BufferManager($stream);
+            $buffer->readByte(); // Read some data
+
+            // This should trigger fseek which will fail
+            expect(fn () => $buffer->reset())
+                ->toThrow(IOException::class, 'Failed to seek stream');
+        } finally {
+            fclose($stream);
+            stream_wrapper_unregister('failseek');
+        }
     });
 
     it('throws on invalid stream resource', function (): void {
@@ -241,5 +384,54 @@ describe('BufferManager', function (): void {
         expect($buffer->readByte())->toBe(' ');
         // Chinese characters are multi-byte UTF-8
         expect($buffer->readByte())->toBeString();
+    });
+
+    it('returns empty string for readChunk with zero size', function (): void {
+        $stream = fopen('php://memory', 'r+');
+        fwrite($stream, 'test data');
+        rewind($stream);
+
+        $buffer = new BufferManager($stream);
+        $result = $buffer->readChunk(0);
+
+        expect($result)->toBe('');
+        expect($buffer->getTotalBytesRead())->toBe(0); // Verify no bytes were consumed
+    });
+
+    it('returns empty string for readChunk with negative size', function (): void {
+        $stream = fopen('php://memory', 'r+');
+        fwrite($stream, 'test data');
+        rewind($stream);
+
+        $buffer = new BufferManager($stream);
+        $result = $buffer->readChunk(-5);
+
+        expect($result)->toBe('');
+        expect($buffer->getTotalBytesRead())->toBe(0); // Verify no bytes were consumed
+    });
+
+    it('throws IOException on fread failure', function (): void {
+        // Register a custom stream wrapper that fails on read
+        stream_wrapper_register('failread', FailingStreamWrapper::class);
+
+        $stream = fopen('failread://test', 'r');
+
+        try {
+            $buffer = new BufferManager($stream, 1024);
+
+            // First readChunk will succeed
+            $buffer->readChunk(4);
+
+            // This should trigger refill which will fail
+            $buffer->readChunk(1);
+
+            // If we get here, the test failed
+            expect(false)->toBeTrue('Expected IOException to be thrown');
+        } catch (IOException $e) {
+            expect($e->getMessage())->toContain('Failed to read from stream');
+        } finally {
+            fclose($stream);
+            stream_wrapper_unregister('failread');
+        }
     });
 });

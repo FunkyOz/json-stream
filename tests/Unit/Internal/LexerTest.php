@@ -427,4 +427,65 @@ describe('Lexer', function (): void {
             expect($lexer->nextToken()->type)->toBe(TokenType::RIGHT_BRACKET);
         });
     });
+
+    describe('additional error coverage', function (): void {
+        it('throws on invalid UTF-8 in string', function (): void {
+            // Create invalid UTF-8: start byte 0xC0 without valid continuation
+            $invalidUtf8 = "\"\xC0\x80\"";
+            expect(fn () => createLexer($invalidUtf8)->nextToken())
+                ->toThrow(ParseException::class, 'Invalid UTF-8 sequence');
+        });
+
+        it('throws on unterminated escape sequence at EOF', function (): void {
+            expect(fn () => createLexer('"hello\\')->nextToken())
+                ->toThrow(ParseException::class, 'Unterminated escape sequence');
+        });
+
+        it('throws on short unicode escape (less than 4 hex digits)', function (): void {
+            expect(fn () => createLexer('"\\u12"')->nextToken())
+                ->toThrow(ParseException::class, 'Invalid Unicode escape');
+        });
+
+        it('throws on unexpected character (special symbols)', function (): void {
+            expect(fn () => createLexer('@')->nextToken())
+                ->toThrow(ParseException::class, 'Unexpected character: \'@\'');
+        });
+
+        it('throws on unexpected character (hash)', function (): void {
+            expect(fn () => createLexer('#')->nextToken())
+                ->toThrow(ParseException::class, 'Unexpected character: \'#\'');
+        });
+
+        it('throws on unexpected character (dollar sign)', function (): void {
+            expect(fn () => createLexer('$')->nextToken())
+                ->toThrow(ParseException::class, 'Unexpected character: \'$\'');
+        });
+
+        it('throws on number with non-digit after decimal with EOF', function (): void {
+            // Create a stream that returns null after decimal point
+            $stream = fopen('php://memory', 'r+');
+            fwrite($stream, '1.');
+            rewind($stream);
+            $buffer = new BufferManager($stream);
+            $lexer = new Lexer($buffer);
+
+            expect(fn () => $lexer->nextToken())
+                ->toThrow(ParseException::class, 'Expected digit after decimal point');
+        });
+
+        it('throws on number with letter after decimal', function (): void {
+            expect(fn () => createLexer('1.a')->nextToken())
+                ->toThrow(ParseException::class, 'Expected digit after decimal point');
+        });
+
+        it('throws on exponent with plus sign but no digits', function (): void {
+            expect(fn () => createLexer('1e+')->nextToken())
+                ->toThrow(ParseException::class, 'Expected digit in exponent');
+        });
+
+        it('throws on exponent with minus sign but no digits', function (): void {
+            expect(fn () => createLexer('1e-')->nextToken())
+                ->toThrow(ParseException::class, 'Expected digit in exponent');
+        });
+    });
 });

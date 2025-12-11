@@ -1,6 +1,6 @@
 ---
 title: Complete RootSegment Coverage
-status: todo
+status: done
 priority: High
 description: Add tests for RootSegment matching logic
 ---
@@ -43,9 +43,9 @@ test('RootSegment matches only at depth 0', function () {
 **Low** - Very simple class with minimal logic.
 
 ## Acceptance Criteria
-- [ ] Line 16 covered
-- [ ] Root matching logic tested
-- [ ] Coverage shows 100%
+- [x] Line 16 covered
+- [x] Root matching logic tested
+- [x] Coverage shows 100%
 
 ## Success Metrics
-- RootSegment: 50.0% -> 100%
+- RootSegment: 50.0% -> 100% ✅

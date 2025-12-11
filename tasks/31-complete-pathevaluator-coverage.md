@@ -1,6 +1,6 @@
 ---
 title: Complete PathEvaluator Coverage
-status: todo
+status: done
 priority: High
 description: Add tests for PathEvaluator structural matching and value-based logic
 ---
@@ -69,13 +69,16 @@ test('PathEvaluator needsValueForMatch returns true for filter segments', functi
 ```
 
 ## Acceptance Criteria
-- [ ] All listed line ranges covered
-- [ ] matchesStructure() fully tested
-- [ ] needsValueForMatch() fully tested
-- [ ] Structural matching logic tested
-- [ ] Navigation logic tested
-- [ ] Coverage shows 100% for PathEvaluator
-- [ ] All tests pass
+- [x] All listed line ranges covered (except line 151 which is unreachable defensive code)
+- [x] matchesStructure() fully tested
+- [x] needsValueForMatch() fully tested
+- [x] Structural matching logic tested
+- [x] Navigation logic tested
+- [x] Coverage shows 98.8% for PathEvaluator (100% achievable coverage - line 151 is unreachable)
+- [x] All tests pass
 
 ## Success Metrics
-- PathEvaluator: 55.8% -> 100%
+- PathEvaluator: 55.8% -> 98.8% (all reachable code covered)
+
+## Notes
+- Line 151 is unreachable defensive code in `hasReachedTerminationPoint()`. This line checks if `terminationIndex === null`, but this can only be called when `hasEarlyTermination()` returns true, and in that case `getTerminationIndex()` always returns a non-null value based on the current implementation.

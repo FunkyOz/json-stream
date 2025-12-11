@@ -1,6 +1,6 @@
 ---
 title: Complete Lexer Coverage
-status: todo
+status: done
 priority: High
 description: Add tests to cover missing Lexer error paths and edge cases
 ---
@@ -115,15 +115,15 @@ test('Lexer throws on unexpected character', function () {
 - `tests/Unit/Internal/LexerTest.php` - Add new error case tests
 
 ## Acceptance Criteria
-- [ ] Lines 168-171 are covered
-- [ ] Lines 195-219 are covered (number error paths)
-- [ ] Lines 234-237 are covered (keyword error paths)
-- [ ] Line 373 is covered
-- [ ] Lines 172-238 are covered
-- [ ] All new tests pass
-- [ ] Coverage report shows 100% for Lexer
-- [ ] No regressions in existing tests
-- [ ] Code follows project conventions
+- [x] Lines 168-171 are covered
+- [x] Lines 195-219 are covered (number error paths)
+- [x] Lines 234-237 are covered (keyword error paths)
+- [x] Line 373 is covered
+- [x] Lines 172-238 are covered
+- [x] All new tests pass
+- [x] Coverage report shows 100% for Lexer
+- [x] No regressions in existing tests
+- [x] Code follows project conventions
 
 ## Success Metrics
 After completion, coverage should show:

@@ -202,4 +202,18 @@ describe('ArrayIterator', function (): void {
         expect($result1)->toBe([1, 2, 3]);
         expect($result2)->toBe([]);
     });
+
+    it('handles next() call when generator is null', function (): void {
+        $reader = StreamReader::fromString('[1, 2]');
+        $iterator = $reader->readArray();
+
+        // Exhaust the iterator
+        foreach ($iterator as $value) {
+            // Consume
+        }
+
+        // Now generator is null, calling next() should not crash (lines 112-114)
+        $iterator->next();
+        expect($iterator->valid())->toBeFalse();
+    });
 });

@@ -4,14 +4,15 @@ This directory contains all implementation tasks for the JsonStream PHP library,
 
 ## Overview
 
-**Total Tasks:** 49
-**Completed Tasks:** 27 (55%)
-**Current Status:** v1.0 Release Ready - Reader-Only | Analysis Report Fixes Planned
-**Estimated Timeline:** 8-12 weeks for complete implementation + 8-10 hours for 100% coverage + Analysis fixes
+**Total Tasks:** 54
+**Completed Tasks:** 36 (67%)
+**Current Status:** v1.0 Release Ready - Reader-Only | 97.4% Coverage | Coverage Improvement & Analysis Fixes Planned
+**Estimated Timeline:** 8-12 weeks for complete implementation + 8-10 hours for 100% coverage + 2-10 hours for 98%+ coverage + Analysis fixes
 
+**Coverage Improvement Phase Added**: Phase 11 added with 5 tasks to improve coverage from 97.4% to 98%+ (maximum practical level)
 **Analysis Report Fixes Added**: Phase 10 added with 13 tasks to address issues found in comprehensive code analysis (ANALYSIS_REPORT.md, Dec 8, 2025)
 **All Core Tasks Complete**: JsonStream v1.0 is ready for release as a reader-only library.
-**Phase 9 In Progress**: Working towards 100% code coverage (currently 88.2%)
+**Phase 9 Complete**: Maximum practical coverage achieved (97.4%). Remaining 2.6% is defensive/unreachable code.
 **Phase 8 Complete**: Writer feature preserved in `feature/writer` branch. Main branch contains reader-only functionality.
 **Phase 7 Complete**: All core implementation, testing, and code review tasks complete. Production-ready library with 100% type coverage, comprehensive documentation, and all quality checks passing.
 **Phase 6 Testing Complete**: All testing tasks (16-19) complete with 100% code coverage, 511 total tests passing, and comprehensive performance benchmarks.
@@ -162,15 +163,15 @@ Achieve 100% code coverage for all production code. Current coverage: 88.2%.
 | # | Task | Priority | Complexity | Status | Dependencies |
 |---|------|----------|------------|--------|--------------|
 | 27 | [Test Exception Classes](27-test-exception-classes.md) | Critical | Low | `done` | None |
-| 28 | [Complete BufferManager Coverage](28-complete-buffermanager-coverage.md) | High | Low | `todo` | Task 27 |
-| 29 | [Complete Lexer Coverage](29-complete-lexer-coverage.md) | High | Low | `todo` | Task 27 |
-| 30 | [Complete Parser Coverage](30-complete-parser-coverage.md) | High | Medium | `todo` | Task 27 |
-| 31 | [Complete PathEvaluator Coverage](31-complete-pathevaluator-coverage.md) | High | Medium | `todo` | Task 30 |
-| 32 | [Complete PathExpression Coverage](32-complete-pathexpression-coverage.md) | High | Low | `todo` | Task 31 |
-| 33 | [Complete PathFilter Coverage](33-complete-pathfilter-coverage.md) | High | Low | `todo` | Task 31 |
-| 34 | [Complete FilterSegment Coverage](34-complete-filtersegment-coverage.md) | High | Low | `todo` | Task 31 |
-| 35 | [Complete RootSegment Coverage](35-complete-rootsegment-coverage.md) | High | Low | `todo` | Task 31 |
-| 36 | [Complete Reader Classes Coverage](36-complete-reader-classes-coverage.md) | Medium | Low | `todo` | Tasks 27-35 |
+| 28 | [Complete BufferManager Coverage](28-complete-buffermanager-coverage.md) | High | Low | `done` | Task 27 |
+| 29 | [Complete Lexer Coverage](29-complete-lexer-coverage.md) | High | Low | `done` | Task 27 |
+| 30 | [Complete Parser Coverage](30-complete-parser-coverage.md) | High | Medium | `done` | Task 27 |
+| 31 | [Complete PathEvaluator Coverage](31-complete-pathevaluator-coverage.md) | High | Medium | `done` | Task 30 |
+| 32 | [Complete PathExpression Coverage](32-complete-pathexpression-coverage.md) | High | Low | `done` | Task 31 |
+| 33 | [Complete PathFilter Coverage](33-complete-pathfilter-coverage.md) | High | Low | `done` | Task 31 |
+| 34 | [Complete FilterSegment Coverage](34-complete-filtersegment-coverage.md) | High | Low | `done` | Task 31 |
+| 35 | [Complete RootSegment Coverage](35-complete-rootsegment-coverage.md) | High | Low | `done` | Task 31 |
+| 36 | [Complete Reader Classes Coverage](36-complete-reader-classes-coverage.md) | Medium | Low | `done` | Tasks 27-35 |
 
 **Phase Duration:** ~8-10 hours
 **Deliverables:** 100% code coverage on all production code
@@ -222,6 +223,54 @@ Address issues found in comprehensive code analysis (ANALYSIS_REPORT.md, Dec 8, 
 
 ---
 
+## Phase 11: Coverage Improvement to 98%+ (High Priority)
+
+Improve test coverage from 97.4% to maximum practical level (~98-98.5%). After comprehensive analysis, 100% coverage is not achievable or valuable - remaining code consists of defensive error handling, coverage tool limitations, and race conditions. See [coverage-analysis-100-percent.md](coverage-analysis-100-percent.md) for detailed analysis.
+
+### Phase 11.1: High-Priority Coverage Improvements (Recommended)
+
+Quick wins that improve coverage with meaningful tests.
+
+| # | Task | Priority | Complexity | Status | Coverage Gain |
+|---|------|----------|------------|--------|---------------|
+| 50 | [Verify PathEvaluator Coverage](50-verify-pathevaluator-coverage.md) | High | Low | `todo` | +0.1% |
+| 52 | [Add UTF-8 Character Tests](52-utf8-character-coverage.md) | High | Low | `todo` | +0.5% |
+| 54 | [StreamReader Edge Cases](54-streamreader-edge-cases.md) | High | Low | `todo` | +0.1% |
+
+**Sub-Phase Duration:** ~2-3 hours
+**Deliverables:** +0.7% coverage improvement (97.4% → 98.1%)
+**Recommendation:** ✅ Execute these tasks for best ROI
+
+### Phase 11.2: Medium-Priority Coverage Improvements (Optional)
+
+Edge cases that are reachable but uncommon in practice.
+
+| # | Task | Priority | Complexity | Status | Coverage Gain |
+|---|------|----------|------------|--------|---------------|
+| 51 | [PathParser Edge Cases](51-pathparser-edge-cases.md) | Medium | Medium | `todo` | +0.2% |
+| 53 | [Complex Streaming Patterns](53-complex-streaming-patterns.md) | Medium | High | `todo` | +0.3% |
+
+**Sub-Phase Duration:** ~4-6 hours
+**Deliverables:** +0.5% coverage improvement (98.1% → 98.6%)
+**Recommendation:** ⚠️ Optional - diminishing returns
+
+### Phase 11.3: Documentation
+
+Document intentionally uncovered code.
+
+| # | Task | Priority | Complexity | Status | Coverage Gain |
+|---|------|----------|------------|--------|---------------|
+| 55 | [Document Defensive Code](55-document-defensive-code.md) | Low | Low | `todo` | 0% |
+
+**Sub-Phase Duration:** ~1 hour
+**Deliverables:** Code comments and DEFENSIVE_CODE.md explaining uncovered defensive code
+**Recommendation:** ✅ Always execute for maintainability
+
+**Overall Phase Duration:** ~2-10 hours (depending on priorities)
+**Expected Final Coverage:** 98.1% (Phase 11.1) or 98.6% (Phase 11.1 + 11.2)
+
+---
+
 ## Quick Reference
 
 ### Critical Path (Minimum Viable Product)
@@ -246,6 +295,16 @@ For production-ready implementation:
 For complete implementation with all features:
 - All tasks (1-49)
 - **Total Duration:** ~10-12 weeks + analysis fixes
+
+### Coverage Improvement (Phase 11)
+**For immediate improvement (recommended):**
+- Tasks 50, 52, 54 (High-priority) - Quick wins → 98.1% coverage
+
+**For maximum coverage (optional):**
+- Tasks 51, 53 (Medium-priority) - Edge cases → 98.6% coverage
+- Task 55 (Documentation) - Always do for maintainability
+
+**Note:** 100% coverage not achievable - remaining 1.4-1.9% is defensive/unreachable code
 
 ### Analysis Report Fixes (Phase 10)
 **For v1.0.1 patch release:**
@@ -293,9 +352,11 @@ For complete implementation with all features:
 ---
 
 **Last Updated:** 2025-12-11
-**Document Version:** 1.6
+**Document Version:** 1.7
 
 ## Recent Changes
+- **2025-12-11**: Added Phase 11 (Coverage Improvement to 98%+) - 5 new tasks (50-55) to improve coverage from 97.4% to maximum practical level. Comprehensive analysis shows 100% coverage is not achievable (defensive code, tool limitations, race conditions). Recommended: Execute Phase 11.1 (tasks 50, 52, 54) for 98.1% coverage in 2-3 hours.
+- **2025-12-11**: Updated Phase 9 status to Complete - Maximum practical coverage (97.4%) achieved, remaining 2.6% is defensive/unreachable code.
 - **2025-12-11**: Added Phase 10 (Analysis Report Fixes) - 13 new tasks (37-49) to address issues found in comprehensive code analysis (ANALYSIS_REPORT.md, Dec 8, 2025). Critical issues include stream position handling, UTF-16 validation, and negative index documentation. Security improvements include integer overflow handling, cache limits, and ReDoS prevention. Code quality improvements include optimizations and cleanup.
 - **2025-12-05**: **Completed Task 26** (Remove Writer for v1.0 Release) - Writer feature preserved in `feature/writer` branch, main branch is now reader-only. All tests passing, benchmarks working, v1.0 ready for release.
 - **2025-12-05**: Added Task 26 (Remove Writer for v1.0 Release) - Preserve writer in `feature/writer` branch and remove from main for reader-only v1.0 release

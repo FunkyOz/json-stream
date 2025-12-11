@@ -144,8 +144,6 @@ json-stream-php/
 └── docs/               # Documentation
 ```
 
-**Note**: Writer functionality has been moved to the `feature/writer` branch for future development. The main branch focuses on reading capabilities for v1.0.
-
 ## Development Workflow
 
 1. **Task-driven development**: Follow the tasks in `tasks/` directory

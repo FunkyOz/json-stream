@@ -1,6 +1,6 @@
 ---
 title: Complete PathExpression Coverage
-status: todo
+status: done
 priority: High
 description: Add tests for PathExpression utility methods
 ---
@@ -49,10 +49,10 @@ test('PathExpression getSegmentCount returns correct count', function () {
 **Low** - Simple getter method tests.
 
 ## Acceptance Criteria
-- [ ] All line ranges covered
-- [ ] All getter methods tested
-- [ ] Coverage shows 100%
-- [ ] All tests pass
+- [x] All line ranges covered
+- [x] All getter methods tested
+- [x] Coverage shows 100%
+- [x] All tests pass
 
 ## Success Metrics
-- PathExpression: 53.8% -> 100%
+- PathExpression: 88.5% -> 100% ✅

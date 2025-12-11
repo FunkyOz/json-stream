@@ -1,6 +1,6 @@
 ---
 title: Complete Parser Coverage
-status: todo
+status: done
 priority: High
 description: Add tests to cover missing Parser paths including JSONPath filtering logic
 ---
@@ -75,13 +75,13 @@ test('Parser handles root path filter', function () {
 ```
 
 ## Acceptance Criteria
-- [ ] All listed line ranges are covered
-- [ ] JSONPath root filtering tested
-- [ ] Depth limit edge cases tested
-- [ ] Error paths tested
-- [ ] Coverage shows 100% for Parser
-- [ ] All tests pass
-- [ ] Code follows project conventions
+- [x] All listed line ranges are covered
+- [x] JSONPath root filtering tested
+- [x] Depth limit edge cases tested
+- [x] Error paths tested
+- [x] Coverage shows 100% for Parser
+- [x] All tests pass
+- [x] Code follows project conventions
 
 ## Success Metrics
 - Parser: 86.1% -> 100%

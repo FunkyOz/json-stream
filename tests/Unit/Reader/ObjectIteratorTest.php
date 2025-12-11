@@ -225,4 +225,19 @@ describe('ObjectIterator', function (): void {
         expect($result1)->toBe(['a' => 1, 'b' => 2]);
         expect($result2)->toBe([]);
     });
+
+    it('handles next() call when generator is null', function (): void {
+        $json = '{"a": 1, "b": 2}';
+        $reader = StreamReader::fromString($json);
+        $iterator = $reader->readObject();
+
+        // Exhaust the iterator
+        foreach ($iterator as $key => $value) {
+            // Consume
+        }
+
+        // Now generator is null, calling next() should not crash (lines 130-132)
+        $iterator->next();
+        expect($iterator->valid())->toBeFalse();
+    });
 });

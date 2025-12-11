@@ -303,5 +303,32 @@ describe('ItemIterator', function (): void {
             expect($result1)->toBe([1, 2, 3]);
             expect($result2)->toBe([]);
         });
+
+        it('handles next() call when generator is null', function (): void {
+            $reader = StreamReader::fromString('[1, 2]');
+            $iterator = $reader->readItems();
+
+            // Exhaust the iterator
+            foreach ($iterator as $value) {
+                // Consume
+            }
+
+            // Now generator is null, calling next() should not crash (lines 139-141)
+            $iterator->next();
+            expect($iterator->valid())->toBeFalse();
+        });
+
+        it('getType returns number for numeric values', function (): void {
+            $reader = StreamReader::fromString('[1, 2.5]');
+            $iterator = $reader->readItems();
+
+            $types = [];
+            foreach ($iterator as $value) {
+                $types[] = $iterator->getType();
+            }
+
+            // Both integers and floats are returned as 'number' type
+            expect($types)->toBe(['number', 'number']);
+        });
     });
 });

@@ -393,4 +393,135 @@ describe('Parser', function (): void {
             expect($count)->toBe(2);
         });
     });
+
+    describe('JSONPath filtering coverage', function (): void {
+        it('parseAndExtractMatches with no path evaluator', function (): void {
+            $parser = createParser('{"name":"test"}');
+            $results = iterator_to_array($parser->parseAndExtractMatches());
+
+            expect($results)->toHaveCount(1);
+            expect($results[0])->toBe(['name' => 'test']);
+        });
+
+        it('parseAndExtractMatches with root path match', function (): void {
+            $stream = fopen('php://memory', 'r+');
+            fwrite($stream, '{"name":"test"}');
+            rewind($stream);
+
+            $buffer = new \JsonStream\Internal\BufferManager($stream);
+            $lexer = new Lexer($buffer);
+            $pathParser = new \JsonStream\Internal\JsonPath\PathParser();
+            $pathEvaluator = new \JsonStream\Internal\JsonPath\PathEvaluator(
+                $pathParser->parse('$')
+            );
+            $parser = new Parser($lexer, Config::DEFAULT_MAX_DEPTH, $pathEvaluator);
+
+            $results = iterator_to_array($parser->parseAndExtractMatches());
+
+            expect($results)->toHaveCount(1);
+            expect($results[0])->toBe(['name' => 'test']);
+        });
+
+        it('streamFromPath handles non-string key in object', function (): void {
+            $stream = fopen('php://memory', 'r+');
+            fwrite($stream, '{123:"value"}');
+            rewind($stream);
+
+            $buffer = new \JsonStream\Internal\BufferManager($stream);
+            $lexer = new Lexer($buffer);
+            $pathParser = new \JsonStream\Internal\JsonPath\PathParser();
+            $pathEvaluator = new \JsonStream\Internal\JsonPath\PathEvaluator(
+                $pathParser->parse('$.test')
+            );
+            $parser = new Parser($lexer, Config::DEFAULT_MAX_DEPTH, $pathEvaluator);
+
+            expect(fn () => iterator_to_array($parser->parseAndExtractMatches()))
+                ->toThrow(ParseException::class, 'Expected string key');
+        });
+
+        it('streamFromObject handles missing comma', function (): void {
+            $stream = fopen('php://memory', 'r+');
+            fwrite($stream, '{"a":1 "b":2}');
+            rewind($stream);
+
+            $buffer = new \JsonStream\Internal\BufferManager($stream);
+            $lexer = new Lexer($buffer);
+            $pathParser = new \JsonStream\Internal\JsonPath\PathParser();
+            $pathEvaluator = new \JsonStream\Internal\JsonPath\PathEvaluator(
+                $pathParser->parse('$.c')
+            );
+            $parser = new Parser($lexer, Config::DEFAULT_MAX_DEPTH, $pathEvaluator);
+
+            expect(fn () => iterator_to_array($parser->parseAndExtractMatches()))
+                ->toThrow(ParseException::class, 'Expected comma or closing brace');
+        });
+
+        it('streamFromArray handles missing comma', function (): void {
+            $stream = fopen('php://memory', 'r+');
+            fwrite($stream, '[1 2]');
+            rewind($stream);
+
+            $buffer = new \JsonStream\Internal\BufferManager($stream);
+            $lexer = new Lexer($buffer);
+            $pathParser = new \JsonStream\Internal\JsonPath\PathParser();
+            $pathEvaluator = new \JsonStream\Internal\JsonPath\PathEvaluator(
+                $pathParser->parse('$[5]')
+            );
+            $parser = new Parser($lexer, Config::DEFAULT_MAX_DEPTH, $pathEvaluator);
+
+            expect(fn () => iterator_to_array($parser->parseAndExtractMatches()))
+                ->toThrow(ParseException::class, 'Expected comma or closing bracket');
+        });
+    });
+
+    describe('skipValue additional coverage', function (): void {
+        it('skipValue throws on EOF', function (): void {
+            $parser = createParser('');
+
+            expect(fn () => $parser->skipValue())
+                ->toThrow(ParseException::class, 'Unexpected end of file');
+        });
+
+        it('skipValue throws on unexpected token', function (): void {
+            $parser = createParser(':');
+
+            expect(fn () => $parser->skipValue())
+                ->toThrow(ParseException::class, 'Unexpected token');
+        });
+
+        it('skipArray with empty array', function (): void {
+            $parser = createParser('[] 123');
+
+            $parser->skipValue(); // Skip empty array
+            expect($parser->parseValue())->toBe(123);
+        });
+
+        it('skipArray handles missing comma', function (): void {
+            $parser = createParser('[1 2] 3');
+
+            expect(fn () => $parser->skipValue())
+                ->toThrow(ParseException::class, 'Expected comma or closing bracket');
+        });
+
+        it('skipObject with empty object', function (): void {
+            $parser = createParser('{} 456');
+
+            $parser->skipValue(); // Skip empty object
+            expect($parser->parseValue())->toBe(456);
+        });
+
+        it('skipObject throws on non-string key', function (): void {
+            $parser = createParser('{123:"value"} "next"');
+
+            expect(fn () => $parser->skipValue())
+                ->toThrow(ParseException::class, 'Expected string key');
+        });
+
+        it('skipObject handles missing comma', function (): void {
+            $parser = createParser('{"a":1 "b":2} 3');
+
+            expect(fn () => $parser->skipValue())
+                ->toThrow(ParseException::class, 'Expected comma or closing brace');
+        });
+    });
 });

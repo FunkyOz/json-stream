@@ -1,6 +1,6 @@
 ---
 title: Complete BufferManager Coverage
-status: todo
+status: done
 priority: High
 description: Add tests to cover missing BufferManager edge cases
 ---
@@ -133,13 +133,14 @@ test('BufferManager throws IOException when stream is closed during refill', fun
 - `tests/Unit/Internal/BufferManagerTest.php` - Add new test cases
 
 ## Acceptance Criteria
-- [ ] Line 151 is covered (readChunk size <= 0)
-- [ ] Line 237 is covered (refillBuffer error path)
-- [ ] Line 266 is covered (validation error path)
-- [ ] All new tests pass
-- [ ] Coverage report shows 100% for BufferManager
-- [ ] No regressions in existing tests
-- [ ] Code follows project conventions
+- [x] Line 151 is covered (readChunk size <= 0)
+- [x] Line 237 is covered (fseek failure in reset)
+- [x] Line 267 is covered (fread failure in refillBuffer)
+- [x] Line 137 is covered (peek beyond EOF after refill)
+- [x] All new tests pass
+- [x] Coverage report shows 100% for BufferManager
+- [x] No regressions in existing tests
+- [x] Code follows project conventions
 
 ## Success Metrics
 After completion, coverage should show:

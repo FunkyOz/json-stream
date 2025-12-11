@@ -288,4 +288,72 @@ describe('StreamReader', function (): void {
             expect(StreamReader::fromString('{}')->readAll())->toBe([]);
         });
     });
+
+    describe('error handling', function (): void {
+        it('throws IOException for non-readable file', function (): void {
+            $tempFile = tempnam(sys_get_temp_dir(), 'json_test_');
+            file_put_contents($tempFile, '[]');
+
+            // Remove read permissions (Unix only, will skip on Windows)
+            if (DIRECTORY_SEPARATOR === '/') {
+                chmod($tempFile, 0000);
+
+                try {
+                    StreamReader::fromFile($tempFile);
+                } catch (\JsonStream\Exception\IOException $e) {
+                    // Restore permissions before cleanup
+                    chmod($tempFile, 0644);
+                    unlink($tempFile);
+
+                    expect($e->getMessage())->toContain('not readable');
+
+                    return;
+                } finally {
+                    if (file_exists($tempFile)) {
+                        chmod($tempFile, 0644);
+                        unlink($tempFile);
+                    }
+                }
+
+                throw new \Exception('Expected IOException was not thrown');
+            } else {
+                // On Windows, skip this test
+                unlink($tempFile);
+                expect(true)->toBeTrue();
+            }
+        });
+    });
+
+    describe('internal methods', function (): void {
+        it('provides access to buffer manager', function (): void {
+            $reader = StreamReader::fromString('[]');
+
+            // getBuffer is an internal method (line 343)
+            expect($reader->getBuffer())->toBeInstanceOf(\JsonStream\Internal\BufferManager::class);
+        });
+
+        it('provides access to path evaluator', function (): void {
+            $reader = StreamReader::fromString('[]');
+
+            // Without a path, pathEvaluator is null (lines 351-353)
+            expect($reader->getPathEvaluator())->toBeNull();
+        });
+
+        it('provides access to path evaluator when path is set', function (): void {
+            $reader = StreamReader::fromString('[1, 2, 3]')->withPath('$[*]');
+
+            // With a path, pathEvaluator exists
+            expect($reader->getPathEvaluator())->not()->toBeNull();
+        });
+
+        it('filters data without pathParser', function (): void {
+            $reader = StreamReader::fromString('{"value": 123}');
+
+            // This uses readAll which eventually calls filterResults
+            // When no path is set, line 287 returns [$value]
+            $result = $reader->readAll();
+
+            expect($result)->toBe(['value' => 123]);
+        });
+    });
 });
