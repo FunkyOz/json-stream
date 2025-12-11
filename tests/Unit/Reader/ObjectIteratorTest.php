@@ -232,7 +232,7 @@ describe('ObjectIterator', function (): void {
         $iterator = $reader->readObject();
 
         // Exhaust the iterator
-        foreach ($iterator as $key => $value) {
+        foreach ($iterator as $value) {
             // Consume
         }
 
