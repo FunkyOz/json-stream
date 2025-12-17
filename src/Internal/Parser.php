@@ -203,7 +203,8 @@ final class Parser
             return;
         }
 
-        $index = 0;
+        $index = 0;       // Array index for path evaluation
+        $resultIndex = 0; // Sequential index for yielded results
 
         while (true) {
             // Enter array index
@@ -219,18 +220,39 @@ final class Parser
                 $this->pathEvaluator->enterLevel($index, $value);
 
                 if ($this->pathEvaluator->matches()) {
-                    yield $value;
+                    // Check if there are remaining segments to extract
+                    $remainingSegments = $this->pathEvaluator->getRemainingSegments();
+                    if (! empty($remainingSegments)) {
+                        // Walk into value to extract remaining path
+                        $extracted = $this->pathEvaluator->walkValue($value, $remainingSegments);
+                        if ($extracted !== null) {
+                            yield $resultIndex++ => $extracted;
+                        }
+                    } else {
+                        yield $resultIndex++ => $value;
+                    }
                 }
 
                 $this->pathEvaluator->exitLevel();
             } else {
                 // No filter - check if current position matches structurally
                 $matchesCurrent = $this->pathEvaluator->matches();
+                $shouldExtract = $this->pathEvaluator->shouldExtractFromValue();
 
-                if ($matchesCurrent) {
-                    // This element matches - parse and yield it
+                if ($shouldExtract) {
+                    // We're at an array element that partially matches, and there are
+                    // remaining segments to extract (e.g., $.users[*].name)
                     $value = $this->parseValue();
-                    yield $value;
+                    $remainingSegments = $this->pathEvaluator->getRemainingSegments();
+                    $extracted = $this->pathEvaluator->walkValue($value, $remainingSegments);
+                    if ($extracted !== null) {
+                        yield $resultIndex++ => $extracted;
+                    }
+                    $this->pathEvaluator->exitLevel();
+                } elseif ($matchesCurrent) {
+                    // This element fully matches - parse and yield it
+                    $value = $this->parseValue();
+                    yield $resultIndex++ => $value;
                     $this->pathEvaluator->exitLevel();
                 } else {
                     // Check if we need to go deeper

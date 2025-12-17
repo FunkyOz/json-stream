@@ -90,7 +90,7 @@ Optional but valuable features that enhance library capabilities.
 | 14 | [JSONPath Engine](14-jsonpath-engine.md) | Medium | High | `done` | Tasks 03, 06, 07 |
 | 15 | [Performance Optimization](15-performance-optimization.md) | Low | High | `done` | Tasks 01-13 |
 | 24 | [Streaming JSONPath Memory Optimization](24-streaming-jsonpath-memory-optimization.md) | Critical | High | `done` | Tasks 14, 15, 23 |
-| 25 | [Complex Pattern Streaming](25-complex-pattern-streaming.md) | Low | High | `todo` | Task 24 |
+| 25 | [Complex Pattern Streaming](25-complex-pattern-streaming.md) | Low | High | `done` | Task 24 |
 
 **Phase Duration:** ~2-3 weeks
 **Deliverables:** JSONPath filtering, performance improvements, streaming JSONPath, complex pattern streaming

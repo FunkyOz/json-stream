@@ -70,6 +70,73 @@ final class PathEvaluator
     }
 
     /**
+     * Check if we're at an array operation with remaining segments to extract
+     *
+     * For patterns like $.users[*].name, when we're at the wildcard position,
+     * this returns true because we need to extract .name from each matched element.
+     *
+     * @return bool True if we should parse and extract remaining segments
+     */
+    public function shouldExtractFromValue(): bool
+    {
+        $segments = $this->expression->getSegments();
+        $depth = count($this->pathStack);
+
+        // Need at least depth segments to match current position
+        if ($depth >= count($segments)) {
+            return false;
+        }
+
+        // Check if segments up to current depth match
+        if (! $this->matchSegmentsPartial($segments, 1, 0, $depth)) {
+            return false;
+        }
+
+        // Check if there are remaining segments after current depth
+        $remaining = $this->getRemainingSegments();
+
+        return ! empty($remaining);
+    }
+
+    /**
+     * Match segments up to a specific depth (partial match)
+     *
+     * @param  PathSegment[]  $segments  Path segments to match
+     * @param  int  $segmentIndex  Current segment index
+     * @param  int  $stackIndex  Current stack index
+     * @param  int  $maxDepth  Maximum depth to match
+     */
+    private function matchSegmentsPartial(array $segments, int $segmentIndex, int $stackIndex, int $maxDepth): bool
+    {
+        // Matched up to max depth
+        if ($stackIndex >= $maxDepth) {
+            return true;
+        }
+
+        // No more segments to match but haven't reached maxDepth
+        if ($segmentIndex >= count($segments)) {
+            return false;
+        }
+
+        // No more stack to match
+        if ($stackIndex >= count($this->pathStack)) {
+            return false;
+        }
+
+        $segment = $segments[$segmentIndex];
+        $key = $this->pathStack[$stackIndex];
+        $value = $this->valueStack[$stackIndex];
+
+        // Normal segment must match at current position
+        if (! $segment->matches($key, $value, $stackIndex)) {
+            return false;
+        }
+
+        // Continue with next segment
+        return $this->matchSegmentsPartial($segments, $segmentIndex + 1, $stackIndex + 1, $maxDepth);
+    }
+
+    /**
      * Check if current path structure matches without evaluating filters
      *
      * Used by streaming parser to decide if it should parse deeper into structure.
@@ -336,5 +403,129 @@ final class PathEvaluator
     public function getExpression(): PathExpression
     {
         return $this->expression;
+    }
+
+    /**
+     * Get segments that come after the current match point
+     *
+     * When streaming an array like $.users[*].name, after matching at
+     * $.users[*], we need to know that .name remains to be extracted.
+     *
+     * Returns only PropertySegment and ArrayIndexSegment instances that need
+     * to be extracted via walkValue(). Does not include the segment we just
+     * matched (wildcard/filter/slice) as that's already been processed.
+     *
+     * @return PathSegment[] Remaining segments to extract from matched value
+     */
+    public function getRemainingSegments(): array
+    {
+        $segments = $this->expression->getSegments();
+        $depth = count($this->pathStack);
+
+        // For $.users[*].name at depth 2 (root=$ + prop=users + index=0):
+        // - Segments: [RootSegment, PropertySegment(users), WildcardSegment, PropertySegment(name)]
+        // - Depth is 2 (users=1, index=2)
+        // - Current segment is at index 2 (WildcardSegment)
+        // - Remaining starts at index 3 (PropertySegment(name))
+
+        // Current segment index is depth (0-based): depth 0 = segment 0, depth 1 = segment 1, etc.
+        // But we want segments AFTER the one we just matched
+        $currentSegmentIndex = $depth;
+
+        // Return segments after current position that can be walked
+        // Include: PropertySegment, ArrayIndexSegment
+        // Exclude: WildcardSegment, FilterSegment, ArraySliceSegment (these need streaming)
+        $remaining = [];
+        for ($i = $currentSegmentIndex + 1; $i < count($segments); $i++) {
+            $segment = $segments[$i];
+            if ($segment instanceof PropertySegment) {
+                $remaining[] = $segment;
+            } elseif ($segment instanceof ArrayIndexSegment) {
+                $remaining[] = $segment;
+            } elseif ($segment instanceof WildcardSegment ||
+                      $segment instanceof FilterSegment ||
+                      $segment instanceof ArraySliceSegment) {
+                // Can't walk into wildcards, filters, or slices - need nested streaming
+                break;
+            }
+        }
+
+        return $remaining;
+    }
+
+    /**
+     * Walk into a parsed value to extract remaining path segments
+     *
+     * For patterns like $.users[*].name, after streaming the array,
+     * this walks into each user object to extract the "name" property.
+     *
+     * @param  mixed  $value  The parsed value to walk into
+     * @param  PathSegment[]  $segments  Segments to extract
+     * @return mixed The extracted value, or null if not found
+     */
+    public function walkValue(mixed $value, array $segments): mixed
+    {
+        // If no segments, return the value as-is
+        if (empty($segments)) {
+            return $value;
+        }
+
+        $current = $value;
+
+        foreach ($segments as $segment) {
+            // PropertySegment: extract property from object
+            if ($segment instanceof PropertySegment) {
+                if (! is_array($current)) {
+                    return null;
+                }
+
+                $propertyName = $segment->getPropertyName();
+                if (! array_key_exists($propertyName, $current)) {
+                    return null;
+                }
+
+                $current = $current[$propertyName];
+
+                continue;
+            }
+
+            // ArrayIndexSegment: extract element from array
+            if ($segment instanceof ArrayIndexSegment) {
+                if (! is_array($current) || ! array_is_list($current)) {
+                    return null;
+                }
+
+                $index = $segment->getIndex();
+                // Handle negative indices
+                if ($index < 0) {
+                    $index = count($current) + $index;
+                }
+
+                if (! array_key_exists($index, $current)) {
+                    return null;
+                }
+
+                $current = $current[$index];
+
+                continue;
+            }
+
+            // WildcardSegment: yield all elements from array
+            if ($segment instanceof WildcardSegment) {
+                if (! is_array($current)) {
+                    return null;
+                }
+
+                // This is a nested wildcard case like $.users[*].posts[*]
+                // We need to return a generator or array of all elements
+                // For now, we'll handle this differently in the caller
+                return $current;
+            }
+
+            // Other segment types not yet supported in walk
+            return null;
+        }
+
+        return $current;
     }
 }

@@ -220,38 +220,43 @@ describe('PathExpression', function (): void {
         expect($expression->canUseSimpleStreaming())->toBeFalse();
     });
 
-    it('canUseSimpleStreaming returns false for wildcard followed by property', function (): void {
+    it('canUseSimpleStreaming returns true for wildcard followed by property', function (): void {
         $parser = new PathParser();
         $expression = $parser->parse('$.items[*].name');
 
-        expect($expression->canUseSimpleStreaming())->toBeFalse();
+        // Now supported: parse array element and extract property via walkValue()
+        expect($expression->canUseSimpleStreaming())->toBeTrue();
     });
 
     it('canUseSimpleStreaming returns false for multiple wildcards', function (): void {
         $parser = new PathParser();
         $expression = $parser->parse('$.items[*].nested[*]');
 
+        // Multiple wildcards require nested streaming - not yet supported
         expect($expression->canUseSimpleStreaming())->toBeFalse();
     });
 
-    it('canUseSimpleStreaming returns false for filter expressions', function (): void {
+    it('canUseSimpleStreaming returns true for filter expressions', function (): void {
         $parser = new PathParser();
         $expression = $parser->parse('$.items[?(@.price > 10)]');
 
-        expect($expression->canUseSimpleStreaming())->toBeFalse();
+        // Now supported: filter expressions use streaming with value evaluation
+        expect($expression->canUseSimpleStreaming())->toBeTrue();
     });
 
-    it('canUseSimpleStreaming returns false for array index followed by property', function (): void {
+    it('canUseSimpleStreaming returns true for array index followed by property', function (): void {
         $parser = new PathParser();
         $expression = $parser->parse('$.items[0].name');
 
-        expect($expression->canUseSimpleStreaming())->toBeFalse();
+        // Now supported: parse element at index and extract property via walkValue()
+        expect($expression->canUseSimpleStreaming())->toBeTrue();
     });
 
-    it('canUseSimpleStreaming returns false for array slice followed by property', function (): void {
+    it('canUseSimpleStreaming returns true for array slice followed by property', function (): void {
         $parser = new PathParser();
         $expression = $parser->parse('$.items[0:5].name');
 
-        expect($expression->canUseSimpleStreaming())->toBeFalse();
+        // Now supported: parse sliced elements and extract property via walkValue()
+        expect($expression->canUseSimpleStreaming())->toBeTrue();
     });
 });

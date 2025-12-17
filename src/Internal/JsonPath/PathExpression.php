@@ -177,18 +177,20 @@ final class PathExpression
     /**
      * Check if path can use simple streaming optimization
      *
-     * Returns true for simple patterns that can be streamed efficiently:
+     * Returns true for patterns that can be streamed efficiently:
      * - $.array[*] - root array wildcard
      * - $.prop[*] - property then array wildcard
      * - $.prop.nested[*] - nested property navigation then wildcard
      * - $.array[0] or $.array[0:10] - specific index/slice access
      * - $.Ads[*] - the main use case!
+     * - $.users[*].name - wildcard with property extraction (NEW)
+     * - $.users[*].profile.email - wildcard with deep property extraction (NEW)
+     * - $.users[?(@.age > 18)] - filter expressions (NEW)
+     * - $.users[?(@.age > 18)].name - filter with property extraction (NEW)
      *
      * Returns false for complex patterns that need full tree walking:
      * - $..prop - recursive descent
-     * - $.array[*].prop - wildcard followed by property access (needs walkValue)
-     * - $.array[*].prop[*] - multiple wildcards
-     * - Complex filter expressions
+     * - $.users[*].posts[*] - multiple wildcards (requires nested streaming)
      *
      * @return bool True if simple streaming can be used
      */
@@ -205,40 +207,45 @@ final class PathExpression
         }
 
         $wildcardCount = 0;
-        $hasArrayOpFollowedByProperty = false;
+        $filterCount = 0;
+        $hasMultipleArrayOps = false;
 
         // Skip root segment (index 0)
         for ($i = 1; $i < count($this->segments); $i++) {
             $segment = $this->segments[$i];
-            $nextSegment = $this->segments[$i + 1] ?? null;
 
-            // Count wildcards
+            // Count wildcards and filters
             if ($segment instanceof WildcardSegment) {
                 $wildcardCount++;
-
-                // Check if wildcard is followed by property access
-                if ($nextSegment !== null && $nextSegment instanceof PropertySegment) {
-                    $hasArrayOpFollowedByProperty = true;
-                }
-            } elseif ($segment instanceof ArrayIndexSegment || $segment instanceof ArraySliceSegment) {
-                // Check if array operation is followed by property access
-                if ($nextSegment !== null && $nextSegment instanceof PropertySegment) {
-                    $hasArrayOpFollowedByProperty = true;
-                }
             } elseif ($segment instanceof FilterSegment) {
-                // Filters are complex, not simple streaming
-                return false;
+                $filterCount++;
+            } elseif ($segment instanceof ArrayIndexSegment || $segment instanceof ArraySliceSegment) {
+                // Array index/slice operations are fine
+            } elseif ($segment instanceof PropertySegment) {
+                // Property segments are fine - they can come after wildcards
             }
         }
 
         // Don't stream if:
-        // - Multiple wildcards
-        // - Array operation followed by property (like [*].name)
-        if ($wildcardCount > 1 || $hasArrayOpFollowedByProperty) {
+        // - Multiple wildcards (nested wildcard streaming not yet implemented)
+        // - Multiple filters
+        // - Wildcard + filter combination
+        if ($wildcardCount > 1) {
             return false;
         }
 
-        // Simple patterns: $.array[*], $.prop.array[0], etc. (ending with array op)
+        if ($filterCount > 1) {
+            return false;
+        }
+
+        if ($wildcardCount > 0 && $filterCount > 0) {
+            return false;
+        }
+
+        // We can stream:
+        // - Single wildcard with any number of properties after it: $.users[*].name
+        // - Single filter with any number of properties after it: $.users[?(@.age > 18)].email
+        // - Simple array access: $.users[0], $.users[0:10]
         return true;
     }
 }
