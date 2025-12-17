@@ -1,7 +1,7 @@
 {
     "name": "funkyoz/json-stream",
     "description": "High-performance PHP library for streaming JSON parsing with constant memory usage.",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "keywords": ["php", "json", "stream", "json-stream"],
     "license": "MIT",
     "authors": [

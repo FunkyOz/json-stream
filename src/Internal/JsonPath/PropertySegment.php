@@ -38,4 +38,12 @@ final class PropertySegment extends PathSegment
     {
         return $this->property;
     }
+
+    /**
+     * Get the property name (alias for getProperty())
+     */
+    public function getPropertyName(): string
+    {
+        return $this->property;
+    }
 }
