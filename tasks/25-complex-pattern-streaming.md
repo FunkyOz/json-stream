@@ -178,7 +178,6 @@ If full streaming for all patterns proves too complex, consider:
 
 ## Acceptance Criteria
 - [x] `$.users[*].name` uses streaming (not PathFilter fallback)
-- [ ] `$.users[*].posts[*]` uses streaming (nested wildcards - deferred to future task)
 - [x] `$.users[?(@.age > 18)]` uses streaming
 - [x] Memory usage is O(element) for these patterns, not O(n)
 - [x] All 568 tests pass with 21,621 assertions

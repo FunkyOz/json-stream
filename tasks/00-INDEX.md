@@ -4,8 +4,8 @@ This directory contains all implementation tasks for the JsonStream PHP library,
 
 ## Overview
 
-**Total Tasks:** 54
-**Completed Tasks:** 36 (67%)
+**Total Tasks:** 55
+**Completed Tasks:** 36 (65%)
 **Current Status:** v1.0 Release Ready - Reader-Only | 97.4% Coverage | Coverage Improvement & Analysis Fixes Planned
 **Estimated Timeline:** 8-12 weeks for complete implementation + 8-10 hours for 100% coverage + 2-10 hours for 98%+ coverage + Analysis fixes
 
@@ -271,6 +271,21 @@ Document intentionally uncovered code.
 
 ---
 
+## Phase 12: Advanced Streaming Features (Low Priority)
+
+Advanced streaming optimizations deferred from earlier tasks. These provide memory improvements for complex patterns but are not required for production use.
+
+| # | Task | Priority | Complexity | Status | Dependencies |
+|---|------|----------|------------|--------|--------------|
+| 56 | [Nested Wildcard Streaming](56-nested-wildcard-streaming.md) | Low | High | `todo` | Task 25 |
+
+**Phase Duration:** ~1-2 weeks
+**Deliverables:** True streaming for nested wildcard patterns like `$.users[*].posts[*]`
+
+**Background:** Task 25 implemented complex pattern streaming but deferred nested wildcards (multiple `[*]` operators) due to complexity. These patterns currently fall back to PathFilter which buffers entire JSON in memory.
+
+---
+
 ## Quick Reference
 
 ### Critical Path (Minimum Viable Product)
@@ -293,8 +308,8 @@ For production-ready implementation:
 
 ### Full Feature Set
 For complete implementation with all features:
-- All tasks (1-49)
-- **Total Duration:** ~10-12 weeks + analysis fixes
+- All tasks (1-56)
+- **Total Duration:** ~10-14 weeks + analysis fixes
 
 ### Coverage Improvement (Phase 11)
 **For immediate improvement (recommended):**
@@ -351,10 +366,11 @@ For complete implementation with all features:
 
 ---
 
-**Last Updated:** 2025-12-11
-**Document Version:** 1.7
+**Last Updated:** 2025-12-17
+**Document Version:** 1.8
 
 ## Recent Changes
+- **2025-12-17**: Added Phase 12 (Advanced Streaming Features) - Task 56 (Nested Wildcard Streaming) to implement true streaming for patterns like `$.users[*].posts[*]`. This was deferred from Task 25 due to complexity.
 - **2025-12-11**: Added Phase 11 (Coverage Improvement to 98%+) - 5 new tasks (50-55) to improve coverage from 97.4% to maximum practical level. Comprehensive analysis shows 100% coverage is not achievable (defensive code, tool limitations, race conditions). Recommended: Execute Phase 11.1 (tasks 50, 52, 54) for 98.1% coverage in 2-3 hours.
 - **2025-12-11**: Updated Phase 9 status to Complete - Maximum practical coverage (97.4%) achieved, remaining 2.6% is defensive/unreachable code.
 - **2025-12-11**: Added Phase 10 (Analysis Report Fixes) - 13 new tasks (37-49) to address issues found in comprehensive code analysis (ANALYSIS_REPORT.md, Dec 8, 2025). Critical issues include stream position handling, UTF-16 validation, and negative index documentation. Security improvements include integer overflow handling, cache limits, and ReDoS prevention. Code quality improvements include optimizations and cleanup.
