@@ -1,7 +1,7 @@
 {
     "name": "funkyoz/json-stream",
     "description": "High-performance PHP library for streaming JSON parsing with constant memory usage.",
-    "version": "1.1.0",
+    "version": "1.1.1",
     "keywords": ["php", "json", "stream", "json-stream"],
     "license": "MIT",
     "authors": [
@@ -11,14 +11,14 @@
         }
     ],
     "require": {
-        "php": ">=8.1 <8.5"
+        "php": "^8.1 || ^8.2 || ^8.3 || ^8.4 || ^8.5"
     },
     "require-dev": {
-        "laravel/pint": "^1.20",
-        "pestphp/pest": "^2.36",
-        "pestphp/pest-plugin-type-coverage": "^2.8",
-        "phpstan/phpstan": "^1.12",
-        "rector/rector": "^1.2",
+        "laravel/pint": "^1.0",
+        "pestphp/pest": "^2.0 || ^3.8 || ^4.2",
+        "pestphp/pest-plugin-type-coverage": "^2.0 || ^3.6 || ^4.0",
+        "phpstan/phpstan": "^1.0 || ^2.0",
+        "rector/rector": "^1.0 || ^2.3",
         "symfony/var-dumper": "^6.4"
     },
     "autoload": {
@@ -48,7 +48,7 @@
         "tests:lint": "pint --preset psr12 --test",
         "tests:unit": "pest --testsuite unit --bail",
         "tests:integration": "pest --testsuite integration --bail",
-        "tests:types": "phpstan",
+        "tests:types": "phpstan --memory-limit=-1",
         "tests:refactor": "rector --dry-run",
         "tests:coverage": "pest --coverage --min=100",
         "tests:benchmark": "php benchmarks/run.php",

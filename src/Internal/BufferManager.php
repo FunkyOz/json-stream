@@ -259,9 +259,10 @@ final class BufferManager
             return false;
         }
 
-        assert($this->bufferSize > 0);
+        // Ensure buffer size is within valid range for fread (required for PHPStan compatibility across versions)
+        $bufferSize = max(1, $this->bufferSize);
 
-        $data = fread($this->stream, $this->bufferSize);
+        $data = fread($this->stream, $bufferSize);
 
         if ($data === false) {
             throw new IOException('Failed to read from stream');
