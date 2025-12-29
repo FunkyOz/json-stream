@@ -14,11 +14,11 @@
         "php": "^8.1"
     },
     "require-dev": {
-        "laravel/pint": "^1.20",
-        "pestphp/pest": "^2.36",
-        "pestphp/pest-plugin-type-coverage": "^2.8",
-        "phpstan/phpstan": "^1.12",
-        "rector/rector": "^1.2",
+        "laravel/pint": "^1.0",
+        "pestphp/pest": "^2.0 || ^3.8 || ^4.2",
+        "pestphp/pest-plugin-type-coverage": "^2.0 || ^3.6 || ^4.0",
+        "phpstan/phpstan": "^1.0 || ^2.0",
+        "rector/rector": "^1.0 || ^2.3",
         "symfony/var-dumper": "^6.4"
     },
     "autoload": {
@@ -44,7 +44,7 @@
     "scripts": {
         "lint": "pint --preset psr12",
         "refactor": "rector",
-        "tests:type-coverage": "pest --type-coverage --exactly=100",
+        "tests:type-coverage": "pest --type-coverage --exactly=100 --memory-limit=-1",
         "tests:lint": "pint --preset psr12 --test",
         "tests:unit": "pest --testsuite unit --bail",
         "tests:integration": "pest --testsuite integration --bail",
