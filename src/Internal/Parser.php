@@ -331,7 +331,7 @@ final class Parser
             }
 
             // Check for trailing comma (not allowed in strict mode)
-            // @phpstan-ignore identical.alwaysFalse
+            // @phpstan-ignore-next-line
             if ($this->lexer->peekToken()->type === TokenType::RIGHT_BRACKET) {
                 throw $this->createException('Trailing comma not allowed', $token);
             }
@@ -391,7 +391,7 @@ final class Parser
             }
 
             // Check for trailing comma (not allowed in strict mode)
-            // @phpstan-ignore identical.alwaysFalse
+            // @phpstan-ignore-next-line
             if ($this->lexer->peekToken()->type === TokenType::RIGHT_BRACE) {
                 throw $this->createException('Trailing comma not allowed', $token);
             }

@@ -59,7 +59,6 @@ beforeEach(function (): void {
  * correct behavior according to JSONPath specification.
  */
 describe('JSONPath Correctness Validation', function (): void {
-
     describe('1. Root Operator ($)', function (): void {
         it('returns entire document for object', function (): void {
             $reader = StreamReader::fromString($this->simpleObject)->withPath('$');

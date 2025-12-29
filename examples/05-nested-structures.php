@@ -45,7 +45,6 @@ try {
             echo "  ... and $remaining more posts\n";
         }
     }
-
 } catch (IOException $e) {
     echo "IO Error: {$e->getMessage()}\n";
     exit(1);

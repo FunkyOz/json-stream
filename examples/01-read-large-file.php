@@ -65,7 +65,6 @@ try {
     echo "\nTotal users processed: $count\n";
     echo 'Time elapsed: '.number_format($elapsed, 3)." seconds\n";
     echo 'Throughput: '.number_format($count / $elapsed, 0)." users/second\n";
-
 } catch (IOException $e) {
     echo "IO Error: {$e->getMessage()}\n";
     exit(1);

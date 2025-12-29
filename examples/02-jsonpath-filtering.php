@@ -84,7 +84,6 @@ try {
         $count++;
     }
     echo "  Total posts: $count\n";
-
 } catch (IOException $e) {
     echo "IO Error: {$e->getMessage()}\n";
     exit(1);

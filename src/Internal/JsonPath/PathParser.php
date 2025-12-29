@@ -217,7 +217,7 @@ final class PathParser
         $expression = '';
         $depth = 1;
 
-        // @phpstan-ignore greater.alwaysTrue
+        // @phpstan-ignore-next-line
         while (! $this->isAtEnd() && $depth > 0) {
             $char = $this->peek();
 

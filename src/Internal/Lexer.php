@@ -365,22 +365,22 @@ final class Lexer
             $this->buffer->readByte(); // consume .
 
             $char = $this->buffer->peek();
-            // @phpstan-ignore identical.alwaysFalse
+            // @phpstan-ignore-next-line
             if ($char === null) {
                 throw $this->error('Expected digit after decimal point', $line, $column);
             }
-            // @phpstan-ignore function.impossibleType
+            // @phpstan-ignore-next-line
             if (! ctype_digit($char)) {
                 throw $this->error('Expected digit after decimal point', $line, $column);
             }
 
             while (true) {
                 $char = $this->buffer->peek();
-                // @phpstan-ignore identical.alwaysFalse
+                // @phpstan-ignore-next-line
                 if ($char === null) {
                     break;
                 }
-                // @phpstan-ignore function.impossibleType
+                // @phpstan-ignore-next-line
                 if (! ctype_digit($char)) {
                     break;
                 }

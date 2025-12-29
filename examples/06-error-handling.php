@@ -67,10 +67,8 @@ try {
     }
 
     echo "  All items processed successfully\n";
-
 } catch (\Exception $e) {
     echo "✗ Processing error: {$e->getMessage()}\n";
-
 } finally {
     // Always close the reader, even if an error occurred
     if ($reader !== null) {
@@ -86,12 +84,10 @@ try {
     $reader = StreamReader::fromFile('test.json');
     $data = $reader->readAll();
     $reader->close();
-
 } catch (JsonStreamException $e) {
     // Catches IOException, ParseException, PathException, etc.
     echo '✓ Caught JsonStreamException: '.get_class($e)."\n";
     echo "  Message: {$e->getMessage()}\n";
-
 } catch (\Throwable $e) {
     // Catch any other unexpected errors
     echo "Unexpected error: {$e->getMessage()}\n";

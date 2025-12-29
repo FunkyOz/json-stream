@@ -72,7 +72,6 @@ try {
         echo sprintf("  %d. User #%d: %s\n", 20 + $count, $user['id'], $user['name']);
     }
     $reader->close();
-
 } catch (IOException $e) {
     echo "IO Error: {$e->getMessage()}\n";
     exit(1);
