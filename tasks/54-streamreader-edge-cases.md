@@ -48,16 +48,16 @@ private function filterResults($value): array
 public static function fromFile(string $filePath, array $options = []): self
 {
     if (!file_exists($filePath)) {
-        throw new IOException("File not found: {$filePath}");
+        throw new IOException("File not found: $filePath");
     }
 
     if (!is_readable($filePath)) {
-        throw new IOException("File is not readable: {$filePath}");
+        throw new IOException("File is not readable: $filePath");
     }
 
     $stream = @fopen($filePath, 'r');
     if ($stream === false) {
-        throw new IOException("Failed to open file: {$filePath}");  // Line 95 - NOT COVERED
+        throw new IOException("Failed to open file: $filePath");  // Line 95 - NOT COVERED
     }
     // ...
 }
@@ -176,7 +176,7 @@ it('handles file deletion between is_readable and fopen', function (): void {
    $stream = @fopen($filePath, 'r');
    // @codeCoverageIgnore - Cannot test TOCTOU race condition between is_readable and fopen
    if ($stream === false) {
-       throw new IOException("Failed to open file: {$filePath}");
+       throw new IOException("Failed to open file: $filePath");
    }
    ```
 

@@ -63,7 +63,7 @@ class PathFilter
     {
         if ($depth > $this->maxDepth) {
             throw new ParseException(
-                "Maximum depth of {$this->maxDepth} exceeded during path traversal"
+                "Maximum depth of $this->maxDepth exceeded during path traversal"
             );
         }
 
@@ -94,7 +94,7 @@ private function walk(mixed $value, array &$results): void
 
         if ($depth > $this->maxDepth) {
             throw new ParseException(
-                "Maximum depth of {$this->maxDepth} exceeded during path traversal"
+                "Maximum depth of $this->maxDepth exceeded during path traversal"
             );
         }
 

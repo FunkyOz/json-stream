@@ -88,7 +88,7 @@ foreach ($sizes as $size) {
     $time2 = microtime(true) - $start;
 
     $improvement = (($time1 - $time2) / $time1) * 100;
-    echo "Size $size: {$improvement}% improvement\n";
+    echo "Size $size: $improvement% improvement\n";
 }
 ```
 

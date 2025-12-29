@@ -21,12 +21,12 @@ $dataFile = __DIR__.'/data/nested-data.json';
 
 // Check if data file exists
 if (! file_exists($dataFile)) {
-    echo "Error: Sample data file not found at {$dataFile}\n";
+    echo "Error: Sample data file not found at $dataFile\n";
     echo "Run the data generation script first.\n";
     exit(1);
 }
 
-echo "Reading from: {$dataFile}\n\n";
+echo "Reading from: $dataFile\n\n";
 
 try {
     // Example 1: Extract all users (without JSONPath - read nested structure)
@@ -42,7 +42,7 @@ try {
         }
         $count++;
     }
-    echo "  Total users: {$count}\n\n";
+    echo "  Total users: $count\n\n";
 
     // Example 2: Read specific properties
     echo "--- Example 2: Filter by role (show admins only) ---\n";
@@ -57,7 +57,7 @@ try {
             $adminCount++;
         }
     }
-    echo "  Total admins: {$adminCount}\n\n";
+    echo "  Total admins: $adminCount\n\n";
 
     // Example 3: Extract array slice with skip/limit
     echo "--- Example 3: Get users 10-14 using pagination ---\n";
@@ -83,7 +83,7 @@ try {
         }
         $count++;
     }
-    echo "  Total posts: {$count}\n";
+    echo "  Total posts: $count\n";
 
 } catch (IOException $e) {
     echo "IO Error: {$e->getMessage()}\n";

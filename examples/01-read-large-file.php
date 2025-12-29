@@ -20,12 +20,12 @@ $dataFile = __DIR__.'/data/users.json';
 
 // Check if data file exists
 if (! file_exists($dataFile)) {
-    echo "Error: Sample data file not found at {$dataFile}\n";
+    echo "Error: Sample data file not found at $dataFile\n";
     echo "Run the data generation script first.\n";
     exit(1);
 }
 
-echo "Reading users from: {$dataFile}\n";
+echo "Reading users from: $dataFile\n";
 echo 'File size: '.number_format(filesize($dataFile))." bytes\n\n";
 
 try {
@@ -53,7 +53,7 @@ try {
 
         // Show progress every 1000 users
         if ($count % 1000 === 0) {
-            echo "Processed {$count} users...\n";
+            echo "Processed $count users...\n";
         }
     }
 
@@ -62,7 +62,7 @@ try {
 
     echo "\nMemory after reading: ".number_format(memory_get_usage())." bytes\n";
     echo 'Memory peak: '.number_format(memory_get_peak_usage())." bytes\n";
-    echo "\nTotal users processed: {$count}\n";
+    echo "\nTotal users processed: $count\n";
     echo 'Time elapsed: '.number_format($elapsed, 3)." seconds\n";
     echo 'Throughput: '.number_format($count / $elapsed, 0)." users/second\n";
 

@@ -402,7 +402,7 @@ it('debug: check streaming behavior', function (): void {
     foreach ($paths as $path) {
         $expr = $parser->parse($path);
         $canStream = $expr->canUseSimpleStreaming();
-        echo "{$path}: " . ($canStream ? 'STREAMING' : 'PATHFILTER') . "\n";
+        echo "$path: " . ($canStream ? 'STREAMING' : 'PATHFILTER') . "\n";
     }
 });
 ```

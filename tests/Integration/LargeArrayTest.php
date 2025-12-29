@@ -13,7 +13,7 @@ function createLargeArrayFile(int $count): string
         $data[] = [
             'id' => $i,
             'name' => "User $i",
-            'email' => "user{$i}@example.com",
+            'email' => "user$i@example.com",
             'active' => true,
             'score' => $i * 1.5,
             'metadata' => [
@@ -98,7 +98,7 @@ describe('Large Array Support', function (): void {
             // Spot check every 2000th item
             if ($itemCount % 2000 === 0) {
                 expect($item['id'])->toBe($itemCount);
-                expect($item['email'])->toBe("user{$itemCount}@example.com");
+                expect($item['email'])->toBe("user$itemCount@example.com");
             }
             $itemCount++;
         }

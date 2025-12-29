@@ -365,9 +365,9 @@ final class PathEvaluator
         $path = '$';
         foreach ($this->pathStack as $key) {
             if (is_int($key)) {
-                $path .= "[{$key}]";
+                $path .= "[$key]";
             } else {
-                $path .= ".{$key}";
+                $path .= ".$key";
             }
         }
 

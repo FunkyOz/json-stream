@@ -100,7 +100,7 @@ public function __construct(string $expression)
         $this->operator = $matches[2];
         $this->value = $this->parseValue($matches[3]);
     } else {
-        throw new PathException("Invalid filter expression: {$expression}");
+        throw new PathException("Invalid filter expression: $expression");
     }
 }
 ```

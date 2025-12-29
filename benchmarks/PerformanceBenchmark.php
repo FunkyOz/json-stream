@@ -117,7 +117,7 @@ class PerformanceBenchmark
         $testFile = self::generateTestFile('1MB', 1000);
 
         echo "\n1. Reading 1MB JSON array (1,000 objects)\n";
-        echo "   File: {$testFile}\n\n";
+        echo "   File: $testFile\n\n";
 
         $resultClassic = $this->benchmarkJsonDecode($testFile);
 
@@ -354,7 +354,7 @@ class PerformanceBenchmark
 
     private static function generateTestFile(string $label, int $objectCount = 1000): string
     {
-        $file = sys_get_temp_dir()."/jsonstream_bench_{$label}.json";
+        $file = sys_get_temp_dir()."/jsonstream_bench_$label.json";
 
         if (file_exists($file)) {
             return $file;
@@ -373,7 +373,7 @@ class PerformanceBenchmark
             $object = [
                 'id' => $i,
                 'name' => 'User '.$i,
-                'email' => "user{$i}@example.com",
+                'email' => "user$i@example.com",
                 'age' => rand(18, 80),
                 'active' => (bool) rand(0, 1),
                 'balance' => rand(0, 100000) / 100,
@@ -388,14 +388,14 @@ class PerformanceBenchmark
             fwrite($handle, json_encode($object));
 
             if ($i % 100 === 0) {
-                echo "   Generated {$i}/{$objectCount} objects...\r";
+                echo "   Generated $i/$objectCount objects...\r";
             }
         }
 
         fwrite($handle, ']');
         fclose($handle);
 
-        echo "   Generated {$objectCount}/{$objectCount} objects... Done!\n";
+        echo "   Generated $objectCount/$objectCount objects... Done!\n";
 
         return $file;
     }
@@ -405,13 +405,13 @@ class PerformanceBenchmark
      */
     private static function generateNestedTestFile(string $label, int $objectCount = 1000): string
     {
-        $file = sys_get_temp_dir()."/jsonstream_bench_nested_{$label}.json";
+        $file = sys_get_temp_dir()."/jsonstream_bench_nested_$label.json";
 
         if (file_exists($file)) {
             return $file;
         }
 
-        echo "   Generating nested test file: {$file}...\n";
+        echo "   Generating nested test file: $file...\n";
 
         $handle = fopen($file, 'w');
         fwrite($handle, '{"Ads":[');
@@ -422,7 +422,7 @@ class PerformanceBenchmark
             }
 
             $ad = [
-                'Vid' => "video_{$i}",
+                'Vid' => "video_$i",
                 'id' => $i,
                 'title' => 'Ad Title '.$i,
                 'duration' => rand(15, 120),
@@ -438,14 +438,14 @@ class PerformanceBenchmark
             fwrite($handle, json_encode($ad));
 
             if ($i % 100 === 0) {
-                echo "   Generated {$i}/{$objectCount} objects...\r";
+                echo "   Generated $i/$objectCount objects...\r";
             }
         }
 
         fwrite($handle, ']}');
         fclose($handle);
 
-        echo "   Generated {$objectCount}/{$objectCount} objects... Done!\n";
+        echo "   Generated $objectCount/$objectCount objects... Done!\n";
 
         return $file;
     }

@@ -389,7 +389,7 @@ final class PathParser
     private function expect(string $expected): void
     {
         if (! $this->consume($expected)) {
-            throw $this->createException("Expected '{$expected}'");
+            throw $this->createException("Expected '$expected'");
         }
     }
 
@@ -399,7 +399,7 @@ final class PathParser
     private function createException(string $message): PathException
     {
         $context = $this->getContext();
-        $exception = new PathException("{$message} at position {$this->position}\n{$context}");
+        $exception = new PathException("$message at position $this->position\n$context");
         $exception->setPath($this->path);
 
         return $exception;

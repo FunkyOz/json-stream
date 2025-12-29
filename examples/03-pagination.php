@@ -20,7 +20,7 @@ $dataFile = __DIR__.'/data/users.json';
 
 // Check if data file exists
 if (! file_exists($dataFile)) {
-    echo "Error: Sample data file not found at {$dataFile}\n";
+    echo "Error: Sample data file not found at $dataFile\n";
     echo "Run the data generation script first.\n";
     exit(1);
 }
@@ -30,12 +30,12 @@ try {
     $pageSize = 10;
     $totalPages = 5;
 
-    echo "Demonstrating pagination with page size: {$pageSize}\n\n";
+    echo "Demonstrating pagination with page size: $pageSize\n\n";
 
     for ($page = 1; $page <= $totalPages; $page++) {
         $offset = ($page - 1) * $pageSize;
 
-        echo "--- Page {$page} (offset: {$offset}, limit: {$pageSize}) ---\n";
+        echo "--- Page $page (offset: $offset, limit: $pageSize) ---\n";
 
         $reader = StreamReader::fromFile($dataFile);
         $users = $reader->readArray()->skip($offset)->limit($pageSize);

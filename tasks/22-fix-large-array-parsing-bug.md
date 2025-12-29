@@ -31,7 +31,7 @@ for ($i = 0; $i < 10000; $i++) {
     $array->value([
         'id' => $i,
         'name' => "User $i",
-        'email' => "user{$i}@example.com",
+        'email' => "user$i@example.com",
         'active' => true,
         'score' => $i * 1.5
     ]);

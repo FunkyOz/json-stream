@@ -31,7 +31,7 @@ try {
         }
         $remaining = count($data['data']['users']) - 5;
         if ($remaining > 0) {
-            echo "  ... and {$remaining} more users\n";
+            echo "  ... and $remaining more users\n";
         }
     }
 
@@ -42,7 +42,7 @@ try {
         }
         $remaining = count($data['data']['posts']) - 3;
         if ($remaining > 0) {
-            echo "  ... and {$remaining} more posts\n";
+            echo "  ... and $remaining more posts\n";
         }
     }
 

@@ -83,16 +83,16 @@ class StreamReader
     public static function fromFile(string $filePath, array $options = []): self
     {
         if (! file_exists($filePath)) {
-            throw new IOException("File not found: {$filePath}");
+            throw new IOException("File not found: $filePath");
         }
 
         if (! is_readable($filePath)) {
-            throw new IOException("File is not readable: {$filePath}");
+            throw new IOException("File is not readable: $filePath");
         }
 
         $stream = @fopen($filePath, 'r');
         if ($stream === false) {
-            throw new IOException("Failed to open file: {$filePath}");
+            throw new IOException("Failed to open file: $filePath");
         }
 
         return new self(

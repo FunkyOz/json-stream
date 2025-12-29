@@ -149,11 +149,11 @@ public function next(): void
 public static function fromFile(string $filePath, array $options = []): self
 {
     if (!file_exists($filePath)) {
-        throw new IOException("File not found: {$filePath}");
+        throw new IOException("File not found: $filePath");
     }
 
     if (!is_readable($filePath)) {
-        throw new IOException("File is not readable: {$filePath}");
+        throw new IOException("File is not readable: $filePath");
     }
 
     // @codeCoverageIgnoreStart
@@ -163,7 +163,7 @@ public static function fromFile(string $filePath, array $options = []): self
     // requires simulating OS-level race conditions, which is not practical.
     $stream = @fopen($filePath, 'r');
     if ($stream === false) {
-        throw new IOException("Failed to open file: {$filePath}");
+        throw new IOException("Failed to open file: $filePath");
     }
     // @codeCoverageIgnoreEnd
 

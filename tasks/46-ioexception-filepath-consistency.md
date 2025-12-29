@@ -24,12 +24,12 @@ description: Use setFilePath() method consistently when throwing IOException
 **Current Issue:**
 ```php
 if (!file_exists($filePath)) {
-    throw new IOException("File not found: {$filePath}");
+    throw new IOException("File not found: $filePath");
     // Missing: $exception->setFilePath($filePath);
 }
 
 if (!is_readable($filePath)) {
-    throw new IOException("File is not readable: {$filePath}");
+    throw new IOException("File is not readable: $filePath");
     // Missing: $exception->setFilePath($filePath);
 }
 ```

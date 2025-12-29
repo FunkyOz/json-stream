@@ -84,7 +84,7 @@ it('canTerminateEarly returns false for expressions without early termination', 
            $evaluator->enterLevel(0, ['test' => 'value']);
 
            expect($evaluator->canTerminateEarly())
-               ->toBeFalse("Path {$path} should not terminate early");
+               ->toBeFalse("Path $path should not terminate early");
        }
    });
    ```

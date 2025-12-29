@@ -129,7 +129,7 @@ $reader = JsonStream::read('config.json');
 
 // Iterate over object key-value pairs
 foreach ($reader->readObject() as $key => $value) {
-    echo "Config '{$key}': {$value}\n";
+    echo "Config '$key': $value\n";
 }
 
 $reader->close();

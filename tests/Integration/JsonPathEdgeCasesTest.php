@@ -495,7 +495,7 @@ describe('JSONPath Edge Cases', function (): void {
         it('handles wildcard on large object', function (): void {
             $data = [];
             for ($i = 0; $i < 1000; $i++) {
-                $data["key{$i}"] = $i;
+                $data["key$i"] = $i;
             }
             $json = json_encode($data);
 
