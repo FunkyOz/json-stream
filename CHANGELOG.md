@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.2.0] - 2026-03-09
 
+### Added
+
+- **Nested Wildcard Streaming**: Patterns with multiple wildcards like `$.users[*].posts[*]`, `$.matrix[*][*]`, and `$.a[*].b[*].c[*]` now use true streaming instead of falling back to PathFilter which buffered the entire JSON structure in memory
+- **PathEvaluator Enhancements**: Added `getAllRemainingSegments()`, `hasNestedWildcardsRemaining()`, and `walkValueWithWildcards()` methods for recursive wildcard expansion during streaming
+- **Numeric String Bracket Notation**: `$["1"]` and `$['1']` now match array index `1` as well as object property `"1"`, per JSONPath RFC 9535 §2.3.1
+
 ### Security
 
 - **UTF-16 Lone Surrogate Validation**: Lone high/low UTF-16 surrogates in JSON strings now throw `ParseException` instead of producing invalid UTF-8 output
@@ -23,11 +29,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **PathExpression**: `canUseSimpleStreaming()` now returns `true` for patterns with multiple wildcards, enabling streaming for nested wildcard patterns
+- **PropertySegment**: `matches()` now supports numeric string properties matching integer array indices (e.g., `$["0"]` matches array index `0`)
+- **Parser**: Enhanced `streamFromArray()` to detect nested wildcards and use recursive extraction via `walkValueWithWildcards()`
 - **PathExpression Analysis Caching**: `hasRecursive()` and `canUseSimpleStreaming()` results are now cached at construction time for better performance
 - **Optimized `isAssociativeArray()`**: Replaced custom method with inline `array_is_list()` check in `PathFilter`
 - **Optimized `readChunk()` Concatenation**: `BufferManager::readChunk()` now uses array collection with `implode()` instead of repeated string concatenation
 - **PHPStan Ignore Comments**: Added descriptive explanations to all `@phpstan-ignore-next-line` annotations
 - **Removed Unused Config Constants**: Removed `MODE_RELAXED`, `ENCODE_NUMERIC_CHECK`, `ENCODE_PRETTY_PRINT`, `ENCODE_UNESCAPED_SLASHES`, and `ENCODE_UNESCAPED_UNICODE` constants that were reserved for unimplemented features
+
+### Performance
+
+- **Memory**: Nested wildcard patterns like `$.users[*].posts[*]` now use O(single outer element) memory instead of O(entire JSON)
+- **Streaming**: Arbitrary depth nesting (4+ wildcard levels) is supported without buffering
 
 ## [1.1.0] - 2025-12-17
 
