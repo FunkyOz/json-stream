@@ -1,6 +1,6 @@
 ---
 title: Add UTF-16 Lone Surrogate Validation
-status: todo
+status: done
 priority: High
 description: Validate and reject lone UTF-16 surrogates to prevent invalid UTF-8 output
 ---

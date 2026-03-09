@@ -15,10 +15,16 @@ use JsonStream\Exception\ParseException;
  * Implements Iterator and Countable interfaces for efficient streaming
  * iteration over JSON objects without loading entire object into memory.
  *
+ * The cache is bounded to prevent unbounded memory growth from very large
+ * JSON objects. When the cache reaches its limit, the oldest entries are
+ * evicted (FIFO).
+ *
  * @implements Iterator<string, mixed>
  */
 class ObjectIterator implements Countable, Iterator
 {
+    private const DEFAULT_MAX_CACHE_SIZE = 1000;
+
     private StreamReader $reader;
 
     private ?Generator $generator = null;
@@ -34,9 +40,12 @@ class ObjectIterator implements Countable, Iterator
     /** @var array<string, mixed> Cached properties for has()/get() */
     private array $cache = [];
 
-    public function __construct(StreamReader $reader)
+    private int $maxCacheSize;
+
+    public function __construct(StreamReader $reader, int $maxCacheSize = self::DEFAULT_MAX_CACHE_SIZE)
     {
         $this->reader = $reader;
+        $this->maxCacheSize = $maxCacheSize;
     }
 
     /**
@@ -148,8 +157,8 @@ class ObjectIterator implements Countable, Iterator
         $this->current = $this->generator->current();
         $this->valid = true;
 
-        // Cache property
-        $this->cache[$this->key] = $this->current;
+        // Cache property with eviction
+        $this->addToCache($this->key, $this->current);
 
         $this->reader->incrementItemsProcessed();
     }
@@ -182,9 +191,27 @@ class ObjectIterator implements Countable, Iterator
             $this->key = (string) $this->generator->key();
             $this->current = $this->generator->current();
             $this->valid = true;
-            $this->cache[$this->key] = $this->current;
+            $this->addToCache($this->key, $this->current);
             $this->reader->incrementItemsProcessed();
         }
+    }
+
+    /**
+     * Add entry to cache with FIFO eviction when limit is reached
+     */
+    private function addToCache(string $key, mixed $value): void
+    {
+        if ($this->maxCacheSize <= 0) {
+            return;
+        }
+
+        if (count($this->cache) >= $this->maxCacheSize && ! array_key_exists($key, $this->cache)) {
+            // Evict oldest entry (FIFO) — cache is non-empty since count >= maxCacheSize > 0
+            reset($this->cache);
+            unset($this->cache[key($this->cache)]);
+        }
+
+        $this->cache[$key] = $value;
     }
 
     /**

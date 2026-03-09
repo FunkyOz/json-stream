@@ -13,10 +13,16 @@ namespace JsonStream\Internal\JsonPath;
  * Provides streaming capability detection to optimize memory usage
  * by enabling early termination and per-element evaluation.
  *
+ * Analysis results are cached at construction time for efficiency.
+ *
  * @internal
  */
 final class PathExpression
 {
+    private readonly bool $isRecursive;
+
+    private readonly bool $isSimpleStreaming;
+
     /**
      * @param  string  $originalPath  Original JSONPath string
      * @param  PathSegment[]  $segments  Parsed path segments
@@ -25,6 +31,8 @@ final class PathExpression
         private readonly string $originalPath,
         private readonly array $segments
     ) {
+        $this->isRecursive = $this->calculateHasRecursive();
+        $this->isSimpleStreaming = $this->calculateCanUseSimpleStreaming();
     }
 
     /**
@@ -68,13 +76,7 @@ final class PathExpression
      */
     public function hasRecursive(): bool
     {
-        foreach ($this->segments as $segment) {
-            if ($segment->isRecursive()) {
-                return true;
-            }
-        }
-
-        return false;
+        return $this->isRecursive;
     }
 
     /**
@@ -93,7 +95,7 @@ final class PathExpression
     public function canStreamArrayElements(): bool
     {
         // Recursive paths can't truly stream as they need full tree context
-        if ($this->hasRecursive()) {
+        if ($this->isRecursive) {
             return false;
         }
 
@@ -196,19 +198,34 @@ final class PathExpression
      */
     public function canUseSimpleStreaming(): bool
     {
+        return $this->isSimpleStreaming;
+    }
+
+    private function calculateHasRecursive(): bool
+    {
+        foreach ($this->segments as $segment) {
+            if ($segment->isRecursive()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function calculateCanUseSimpleStreaming(): bool
+    {
         // Must have at least root + one segment
         if (count($this->segments) < 2) {
             return false;
         }
 
         // No recursive descent allowed
-        if ($this->hasRecursive()) {
+        if ($this->isRecursive) {
             return false;
         }
 
         $wildcardCount = 0;
         $filterCount = 0;
-        $hasMultipleArrayOps = false;
 
         // Skip root segment (index 0)
         for ($i = 1; $i < count($this->segments); $i++) {
@@ -219,10 +236,6 @@ final class PathExpression
                 $wildcardCount++;
             } elseif ($segment instanceof FilterSegment) {
                 $filterCount++;
-            } elseif ($segment instanceof ArrayIndexSegment || $segment instanceof ArraySliceSegment) {
-                // Array index/slice operations are fine
-            } elseif ($segment instanceof PropertySegment) {
-                // Property segments are fine - they can come after wildcards
             }
         }
 

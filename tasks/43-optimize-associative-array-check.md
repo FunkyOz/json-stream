@@ -1,6 +1,6 @@
 ---
 title: Optimize isAssociativeArray() Method
-status: todo
+status: done
 priority: Low
 description: Simplify isAssociativeArray() method to remove redundant empty() check
 ---

@@ -1,6 +1,6 @@
 ---
 title: Add Integer Overflow Handling in Number Parsing
-status: todo
+status: done
 priority: Medium
 description: Detect and handle integer overflow on 32-bit systems during number parsing
 ---

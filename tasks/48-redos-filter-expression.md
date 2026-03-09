@@ -1,6 +1,6 @@
 ---
 title: Prevent ReDoS in Filter Expression Parsing
-status: todo
+status: done
 priority: Medium
 description: Add input validation to prevent ReDoS attacks in filter expression regex
 ---

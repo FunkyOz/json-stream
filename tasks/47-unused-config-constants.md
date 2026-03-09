@@ -1,6 +1,6 @@
 ---
 title: Remove or Implement Unused Config Constants
-status: todo
+status: done
 priority: Low
 description: Review and remove unused Config constants or implement their functionality
 ---

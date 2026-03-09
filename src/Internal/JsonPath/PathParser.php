@@ -217,7 +217,7 @@ final class PathParser
         $expression = '';
         $depth = 1;
 
-        // @phpstan-ignore-next-line
+        // @phpstan-ignore-next-line — loop condition: isAtEnd() can change during iteration
         while (! $this->isAtEnd() && $depth > 0) {
             $char = $this->peek();
 

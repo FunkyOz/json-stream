@@ -282,27 +282,61 @@ final class Lexer
 
         // Handle UTF-16 surrogate pairs (high surrogate: 0xD800-0xDBFF)
         if ($codepoint >= 0xD800 && $codepoint <= 0xDBFF) {
-            // Expect low surrogate
-            if ($this->buffer->peek() === '\\' && $this->buffer->peek(1) === 'u') {
-                $this->buffer->readByte(); // consume \
-                $this->buffer->readByte(); // consume u
-
-                $lowHex = $this->buffer->readChunk(4);
-
-                if (strlen($lowHex) === 4 && ctype_xdigit($lowHex)) {
-                    $lowCodepoint = hexdec($lowHex);
-
-                    // Validate low surrogate (0xDC00-0xDFFF)
-                    if ($lowCodepoint >= 0xDC00 && $lowCodepoint <= 0xDFFF) {
-                        // Combine surrogates into single codepoint
-                        $codepoint = 0x10000 + (($codepoint & 0x3FF) << 10) + ($lowCodepoint & 0x3FF);
-                    }
-                }
+            // High surrogate must be followed by low surrogate
+            if ($this->buffer->peek() !== '\\' || $this->buffer->peek(1) !== 'u') {
+                throw $this->error(
+                    'Invalid lone high UTF-16 surrogate: \\u' . $hex,
+                    $this->buffer->getLine(),
+                    $this->buffer->getColumn()
+                );
             }
+
+            $this->buffer->readByte(); // consume \
+            $this->buffer->readByte(); // consume u
+
+            $lowHex = $this->buffer->readChunk(4);
+
+            if (strlen($lowHex) !== 4 || ! ctype_xdigit($lowHex)) {
+                throw $this->error(
+                    "Invalid Unicode escape sequence: \\u$lowHex",
+                    $this->buffer->getLine(),
+                    $this->buffer->getColumn()
+                );
+            }
+
+            $lowCodepoint = hexdec($lowHex);
+
+            if ($lowCodepoint < 0xDC00 || $lowCodepoint > 0xDFFF) {
+                throw $this->error(
+                    'Invalid UTF-16 surrogate pair: expected low surrogate after \\u' . $hex,
+                    $this->buffer->getLine(),
+                    $this->buffer->getColumn()
+                );
+            }
+
+            // Combine surrogates into single codepoint
+            $codepoint = 0x10000 + (($codepoint & 0x3FF) << 10) + ($lowCodepoint & 0x3FF);
+        } elseif ($codepoint >= 0xDC00 && $codepoint <= 0xDFFF) {
+            // Lone low surrogate
+            throw $this->error(
+                'Invalid lone low UTF-16 surrogate: \\u' . $hex,
+                $this->buffer->getLine(),
+                $this->buffer->getColumn()
+            );
         }
 
         // Convert codepoint to UTF-8
-        return mb_chr((int) $codepoint, 'UTF-8');
+        $char = mb_chr((int) $codepoint, 'UTF-8');
+        // @phpstan-ignore-next-line — mb_chr() can return false for invalid codepoints
+        if ($char === false) {
+            throw $this->error(
+                'Invalid Unicode codepoint: \\u' . $hex,
+                $this->buffer->getLine(),
+                $this->buffer->getColumn()
+            );
+        }
+
+        return $char;
     }
 
     /**
@@ -337,6 +371,11 @@ final class Lexer
             }
         }
 
+        // Overflow detection thresholds
+        $maxBeforeOverflow = (int) (PHP_INT_MAX / 10);
+        $maxLastDigit = PHP_INT_MAX % 10;
+        $overflowed = false;
+
         // Integer part
         if ($firstChar === '0') {
             // Leading zero - next must be . or e/E or end
@@ -355,7 +394,16 @@ final class Lexer
                     break;
                 }
                 $this->buffer->readByte();
-                $intPart = $intPart * 10 + (ord($char) - ord('0'));
+                $digit = ord($char) - ord('0');
+
+                // Check for overflow before multiplication
+                if (! $overflowed && ($intPart > $maxBeforeOverflow
+                    || ($intPart === $maxBeforeOverflow && $digit > $maxLastDigit))) {
+                    $overflowed = true;
+                    $isFloat = true;
+                }
+
+                $intPart = $intPart * 10 + $digit;
             }
         }
 
@@ -365,22 +413,22 @@ final class Lexer
             $this->buffer->readByte(); // consume .
 
             $char = $this->buffer->peek();
-            // @phpstan-ignore-next-line
+            // @phpstan-ignore-next-line — peek() can return null at EOF/buffer boundary
             if ($char === null) {
                 throw $this->error('Expected digit after decimal point', $line, $column);
             }
-            // @phpstan-ignore-next-line
+            // @phpstan-ignore-next-line — defensive: char may be non-digit after buffer refill
             if (! ctype_digit($char)) {
                 throw $this->error('Expected digit after decimal point', $line, $column);
             }
 
             while (true) {
                 $char = $this->buffer->peek();
-                // @phpstan-ignore-next-line
+                // @phpstan-ignore-next-line — peek() can return null at EOF/buffer boundary
                 if ($char === null) {
                     break;
                 }
-                // @phpstan-ignore-next-line
+                // @phpstan-ignore-next-line — defensive: char may be non-digit
                 if (! ctype_digit($char)) {
                     break;
                 }

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace JsonStream\Internal\JsonPath;
 
+use JsonStream\Exception\PathException;
+
 /**
  * Represents a filter expression segment ([?(@.property op value)])
  *
@@ -11,12 +13,24 @@ namespace JsonStream\Internal\JsonPath;
  */
 final class FilterSegment extends PathSegment
 {
+    private const MAX_FILTER_EXPRESSION_LENGTH = 1000;
+
     /**
      * @param  string  $expression  Filter expression (e.g., "@.price < 10")
+     *
+     * @throws PathException If expression exceeds maximum length
      */
     public function __construct(
         private readonly string $expression
     ) {
+        if (strlen($expression) > self::MAX_FILTER_EXPRESSION_LENGTH) {
+            throw new PathException(
+                sprintf(
+                    'Filter expression too long (max %d characters)',
+                    self::MAX_FILTER_EXPRESSION_LENGTH
+                )
+            );
+        }
     }
 
     public function matches(string|int $key, mixed $value, int $depth): bool

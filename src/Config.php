@@ -70,55 +70,6 @@ final class Config
      */
     public const MODE_STRICT = 1;
 
-    /**
-     * Relaxed parser mode
-     *
-     * Allows common JSON extensions:
-     * - Trailing commas in arrays and objects
-     * - Single-line and multi-line comments
-     * - Unquoted object keys (when safe)
-     * - Single-quoted strings
-     *
-     * Note: This mode is reserved for future implementation.
-     */
-    public const MODE_RELAXED = 2;
-
-    /**
-     * Encoding option: Numeric check
-     *
-     * Encodes numeric strings as numbers in JSON output.
-     *
-     * Reserved for future implementation.
-     */
-    public const ENCODE_NUMERIC_CHECK = 1;
-
-    /**
-     * Encoding option: Pretty print
-     *
-     * Use whitespace and indentation for readable JSON output.
-     *
-     * Reserved for future implementation (currently handled via withPrettyPrint()).
-     */
-    public const ENCODE_PRETTY_PRINT = 2;
-
-    /**
-     * Encoding option: Unescaped slashes
-     *
-     * Don't escape forward slashes (/) in strings.
-     *
-     * Reserved for future implementation.
-     */
-    public const ENCODE_UNESCAPED_SLASHES = 4;
-
-    /**
-     * Encoding option: Unescaped unicode
-     *
-     * Output unicode characters directly instead of \uXXXX escapes.
-     *
-     * Reserved for future implementation.
-     */
-    public const ENCODE_UNESCAPED_UNICODE = 8;
-
     private function __construct()
     {
         // Private constructor prevents instantiation

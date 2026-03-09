@@ -1,6 +1,6 @@
 ---
 title: Add Cache Size Limits to ObjectIterator
-status: todo
+status: done
 priority: Medium
 description: Implement cache size limits in ObjectIterator to prevent unbounded memory growth
 ---

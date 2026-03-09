@@ -1,6 +1,6 @@
 ---
 title: Fix Stream Position Not Reset in Fluent Interface Methods
-status: todo
+status: done
 priority: Critical
 description: Fix stream position handling when using fluent interface methods to prevent data loss
 ---

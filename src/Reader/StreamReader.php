@@ -83,16 +83,22 @@ class StreamReader
     public static function fromFile(string $filePath, array $options = []): self
     {
         if (! file_exists($filePath)) {
-            throw new IOException("File not found: $filePath");
+            $e = new IOException('File not found');
+            $e->setFilePath($filePath);
+            throw $e;
         }
 
         if (! is_readable($filePath)) {
-            throw new IOException("File is not readable: $filePath");
+            $e = new IOException('File is not readable');
+            $e->setFilePath($filePath);
+            throw $e;
         }
 
         $stream = @fopen($filePath, 'r');
         if ($stream === false) {
-            throw new IOException("Failed to open file: $filePath");
+            $e = new IOException('Failed to open file');
+            $e->setFilePath($filePath);
+            throw $e;
         }
 
         return new self(
@@ -151,9 +157,13 @@ class StreamReader
 
     /**
      * Set JSONPath filter expression (fluent interface)
+     *
+     * @throws IOException If stream has been partially consumed and is not seekable
      */
     public function withPath(string $path): self
     {
+        $this->resetStreamIfNeeded();
+
         // Transfer ownership if we own the stream
         $newOwnsStream = $this->ownsStream;
         if ($this->ownsStream) {
@@ -173,9 +183,13 @@ class StreamReader
 
     /**
      * Set buffer size (fluent interface)
+     *
+     * @throws IOException If stream has been partially consumed and is not seekable
      */
     public function withBufferSize(int $size): self
     {
+        $this->resetStreamIfNeeded();
+
         // Transfer ownership if we own the stream
         $newOwnsStream = $this->ownsStream;
         if ($this->ownsStream) {
@@ -195,9 +209,13 @@ class StreamReader
 
     /**
      * Set maximum nesting depth (fluent interface)
+     *
+     * @throws IOException If stream has been partially consumed and is not seekable
      */
     public function withMaxDepth(int $depth): self
     {
+        $this->resetStreamIfNeeded();
+
         // Transfer ownership if we own the stream
         $newOwnsStream = $this->ownsStream;
         if ($this->ownsStream) {
@@ -213,6 +231,29 @@ class StreamReader
             $this->jsonPath,
             $newOwnsStream
         );
+    }
+
+    /**
+     * Reset stream position if data has been consumed
+     *
+     * @throws IOException If stream has been partially consumed and is not seekable
+     */
+    private function resetStreamIfNeeded(): void
+    {
+        if ($this->buffer->getTotalBytesRead() === 0) {
+            return;
+        }
+
+        assert($this->stream !== null);
+
+        $metadata = stream_get_meta_data($this->stream);
+        if ($metadata['seekable']) {
+            $this->buffer->reset();
+        } else {
+            throw new IOException(
+                'Cannot use fluent methods after reading from a non-seekable stream'
+            );
+        }
     }
 
     /**

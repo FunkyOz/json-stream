@@ -1,6 +1,6 @@
 ---
 title: Add Depth Tracking to PathFilter::walk()
-status: todo
+status: done
 priority: Medium
 description: Add depth tracking to recursive PathFilter::walk() to prevent stack overflow
 ---

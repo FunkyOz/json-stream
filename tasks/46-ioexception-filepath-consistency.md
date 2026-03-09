@@ -1,6 +1,6 @@
 ---
 title: Set File Path Consistently in IOException
-status: todo
+status: done
 priority: Low
 description: Use setFilePath() method consistently when throwing IOException
 ---

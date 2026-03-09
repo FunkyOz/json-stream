@@ -1,6 +1,6 @@
 ---
 title: Cache PathExpression Analysis Results
-status: todo
+status: done
 priority: Low
 description: Cache results of PathExpression analysis methods to avoid repeated iteration
 ---

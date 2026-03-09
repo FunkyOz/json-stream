@@ -151,7 +151,7 @@ final class BufferManager
             return '';
         }
 
-        $result = '';
+        $chunks = [];
         $remaining = $size;
 
         while ($remaining > 0) {
@@ -166,7 +166,7 @@ final class BufferManager
             $take = min($remaining, $available);
 
             $chunk = substr($this->buffer, $this->bufferPosition, $take);
-            $result .= $chunk;
+            $chunks[] = $chunk;
 
             $this->bufferPosition += $take;
             $this->totalBytesRead += $take;
@@ -178,7 +178,7 @@ final class BufferManager
             }
         }
 
-        return $result;
+        return implode('', $chunks);
     }
 
     /**

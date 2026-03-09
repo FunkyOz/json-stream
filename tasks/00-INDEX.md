@@ -4,13 +4,13 @@ This directory contains all implementation tasks for the JsonStream PHP library,
 
 ## Overview
 
-**Total Tasks:** 55
-**Completed Tasks:** 36 (65%)
-**Current Status:** v1.0 Release Ready - Reader-Only | 97.4% Coverage | Coverage Improvement & Analysis Fixes Planned
-**Estimated Timeline:** 8-12 weeks for complete implementation + 8-10 hours for 100% coverage + 2-10 hours for 98%+ coverage + Analysis fixes
+**Total Tasks:** 68
+**Completed Tasks:** 49 (72%)
+**Current Status:** v1.0 Release Ready - Reader-Only | 97.4% Coverage | Phase 10 Analysis Fixes Complete | Phase 13 Performance Plan Created
+**Estimated Timeline:** 8-12 weeks for complete implementation + 8-10 hours for 100% coverage + 2-10 hours for 98%+ coverage + Analysis fixes + Performance optimization
 
+**Phase 10 Complete**: All 13 analysis report fixes implemented (Tasks 37-49). Security hardening, code quality improvements, and optimizations applied.
 **Coverage Improvement Phase Added**: Phase 11 added with 5 tasks to improve coverage from 97.4% to 98%+ (maximum practical level)
-**Analysis Report Fixes Added**: Phase 10 added with 13 tasks to address issues found in comprehensive code analysis (ANALYSIS_REPORT.md, Dec 8, 2025)
 **All Core Tasks Complete**: JsonStream v1.0 is ready for release as a reader-only library.
 **Phase 9 Complete**: Maximum practical coverage achieved (97.4%). Remaining 2.6% is defensive/unreachable code.
 **Phase 8 Complete**: Writer feature preserved in `feature/writer` branch. Main branch contains reader-only functionality.
@@ -186,40 +186,40 @@ Address issues found in comprehensive code analysis (ANALYSIS_REPORT.md, Dec 8, 
 
 | # | Task | Priority | Complexity | Status | Dependencies |
 |---|------|----------|------------|--------|--------------|
-| 37 | [Fix Stream Position in Fluent Methods](37-stream-position-fluent-methods.md) | Critical | Medium | `todo` | None |
-| 38 | [Add UTF-16 Lone Surrogate Validation](38-utf16-surrogate-validation.md) | High | Low | `todo` | None |
-| 39 | [Document Negative Index Streaming Limitations](39-negative-index-streaming-mode.md) | High | Medium | `todo` | None |
+| 37 | [Fix Stream Position in Fluent Methods](37-stream-position-fluent-methods.md) | Critical | Medium | `done` | None |
+| 38 | [Add UTF-16 Lone Surrogate Validation](38-utf16-surrogate-validation.md) | High | Low | `done` | None |
+| 39 | [Document Negative Index Streaming Limitations](39-negative-index-streaming-mode.md) | High | Medium | `done` | None |
 
-**Sub-Phase Duration:** Priority for v1.0.1
+**Sub-Phase Duration:** Complete
 **Deliverables:** Stream position handling, UTF-8 validity, streaming documentation
 
 ### Phase 10.2: Security & Robustness
 
 | # | Task | Priority | Complexity | Status | Dependencies |
 |---|------|----------|------------|--------|--------------|
-| 40 | [Add Integer Overflow Handling](40-integer-overflow-handling.md) | Medium | Medium | `todo` | None |
-| 41 | [Add ObjectIterator Cache Limits](41-objectiterator-cache-limits.md) | Medium | Medium | `todo` | Task 02 |
-| 42 | [Add PathFilter Depth Tracking](42-pathfilter-depth-tracking.md) | Medium | Medium | `todo` | None |
-| 48 | [Prevent ReDoS in Filter Expressions](48-redos-filter-expression.md) | Medium | Low | `todo` | None |
+| 40 | [Add Integer Overflow Handling](40-integer-overflow-handling.md) | Medium | Medium | `done` | None |
+| 41 | [Add ObjectIterator Cache Limits](41-objectiterator-cache-limits.md) | Medium | Medium | `done` | Task 02 |
+| 42 | [Add PathFilter Depth Tracking](42-pathfilter-depth-tracking.md) | Medium | Medium | `done` | None |
+| 48 | [Prevent ReDoS in Filter Expressions](48-redos-filter-expression.md) | Medium | Low | `done` | None |
 
-**Sub-Phase Duration:** For v1.0.1 or v1.1.0
+**Sub-Phase Duration:** Complete
 **Deliverables:** Robust number parsing, bounded memory, depth limits, ReDoS protection
 
 ### Phase 10.3: Code Quality & Optimization
 
 | # | Task | Priority | Complexity | Status | Dependencies |
 |---|------|----------|------------|--------|--------------|
-| 43 | [Optimize isAssociativeArray() Method](43-optimize-associative-array-check.md) | Low | Low | `todo` | None |
-| 44 | [Cache PathExpression Analysis](44-cache-pathexpression-analysis.md) | Low | Low | `todo` | Task 39 |
-| 45 | [Review PHPStan Ignore Comments](45-review-phpstan-ignores.md) | Low | Low-Medium | `todo` | None |
-| 46 | [Set IOException File Path Consistently](46-ioexception-filepath-consistency.md) | Low | Low | `todo` | None |
-| 47 | [Remove Unused Config Constants](47-unused-config-constants.md) | Low | Low | `todo` | Task 26 |
-| 49 | [Optimize readChunk() Concatenation](49-optimize-readchunk-concatenation.md) | Low | Low | `todo` | None |
+| 43 | [Optimize isAssociativeArray() Method](43-optimize-associative-array-check.md) | Low | Low | `done` | None |
+| 44 | [Cache PathExpression Analysis](44-cache-pathexpression-analysis.md) | Low | Low | `done` | Task 39 |
+| 45 | [Review PHPStan Ignore Comments](45-review-phpstan-ignores.md) | Low | Low-Medium | `done` | None |
+| 46 | [Set IOException File Path Consistently](46-ioexception-filepath-consistency.md) | Low | Low | `done` | None |
+| 47 | [Remove Unused Config Constants](47-unused-config-constants.md) | Low | Low | `done` | Task 26 |
+| 49 | [Optimize readChunk() Concatenation](49-optimize-readchunk-concatenation.md) | Low | Low | `done` | None |
 
-**Sub-Phase Duration:** Can be deferred to v1.1.0 or v1.2.0
+**Sub-Phase Duration:** Complete
 **Deliverables:** Cleaner code, better performance, reduced technical debt
 
-**Overall Phase Duration:** ~2-3 weeks (depending on priorities)
+**Overall Phase Duration:** Complete
 
 ---
 
@@ -286,6 +286,75 @@ Advanced streaming optimizations deferred from earlier tasks. These provide memo
 
 ---
 
+## Phase 13: Performance Optimization (High Priority)
+
+Comprehensive performance optimization plan based on profiling analysis. Current throughput is ~6.19 MB/s (43.6x slower than json_decode). Target: 3-5x improvement through hot-path optimization.
+
+**Profiling Baseline:**
+- Throughput: 6.19 MB/s (vs json_decode: 269.94 MB/s)
+- Per-item latency: 30.75 us/item for array reading
+- String throughput: 10.78 MB/s
+- Number throughput: 4.74 MB/s
+
+### Phase 13.1: Critical Hot Path (Highest Impact)
+
+Foundation optimizations that unlock all subsequent improvements.
+
+| # | Task | Priority | Complexity | Status | Expected Impact |
+|---|------|----------|------------|--------|-----------------|
+| 57 | [Optimize readByte/peek Hot Path](57-optimize-readbyte-peek-hot-path.md) | Critical | High | `todo` | +30-50% throughput |
+| 58 | [Remove mb_check_encoding from Hot Path](58-remove-mb-check-encoding-from-hot-path.md) | Critical | Medium | `todo` | +20-30% string throughput |
+
+**Sub-Phase Duration:** ~1-2 weeks
+**Deliverables:** Eliminated per-byte method call overhead, removed expensive encoding checks from hot path
+**Recommendation:** Do these first - they're the foundation for all other optimizations
+
+### Phase 13.2: Bulk Scanning Optimizations (High Impact)
+
+Replace byte-by-byte scanning with bulk C-level operations.
+
+| # | Task | Priority | Complexity | Status | Expected Impact |
+|---|------|----------|------------|--------|-----------------|
+| 59 | [Batch String Scanning](59-batch-string-scanning.md) | High | High | `todo` | +40% string throughput |
+| 61 | [Optimize Number Scanning](61-optimize-number-scanning.md) | High | Medium | `todo` | +30% number throughput |
+| 62 | [Optimize skipValue Fast Path](62-optimize-skipvalue-fast-path.md) | High | Medium | `todo` | +25% JSONPath throughput |
+| 63 | [Optimize Whitespace Skipping](63-optimize-whitespace-skipping.md) | Medium | Low | `todo` | +15% pretty-print throughput |
+
+**Sub-Phase Duration:** ~2-3 weeks
+**Deliverables:** Bulk scanning for strings, numbers, whitespace; dedicated skip fast path
+
+### Phase 13.3: Allocation & Overhead Reduction (Medium Impact)
+
+Reduce object allocation and per-operation overhead.
+
+| # | Task | Priority | Complexity | Status | Expected Impact |
+|---|------|----------|------------|--------|-----------------|
+| 60 | [Reduce Token Object Allocation](60-reduce-token-object-allocation.md) | High | Medium | `todo` | Reduced GC pressure |
+| 64 | [Optimize PathEvaluator Matching](64-optimize-path-evaluator-matching.md) | Medium | Medium | `todo` | +10% JSONPath throughput |
+| 65 | [Lazy Position Tracking](65-lazy-position-tracking.md) | Medium | Medium | `todo` | +10% overall throughput |
+| 66 | [String Concatenation Optimization](66-string-concatenation-optimization.md) | Medium | Low | `todo` | +5% string throughput |
+
+**Sub-Phase Duration:** ~1-2 weeks
+**Deliverables:** Fewer allocations, cached evaluator state, deferred position tracking
+
+### Phase 13.4: Infrastructure & Research (Supporting)
+
+Benchmarking infrastructure and exploratory optimizations.
+
+| # | Task | Priority | Complexity | Status | Expected Impact |
+|---|------|----------|------------|--------|-----------------|
+| 67 | [Comprehensive Benchmark Suite](67-benchmark-suite-improvements.md) | Medium | Medium | `todo` | Measurement infrastructure |
+| 68 | [Generator Overhead Reduction](68-generator-overhead-reduction.md) | Low | Medium | `todo` | TBD (research) |
+| 69 | [Buffer Size Auto-Tuning](69-buffer-size-auto-tuning.md) | Low | Low | `todo` | +5% large file throughput |
+
+**Sub-Phase Duration:** ~1 week
+**Deliverables:** Benchmark suite, generator analysis, auto-tuned buffers
+
+**Overall Phase Duration:** ~4-6 weeks
+**Target:** 3-5x throughput improvement (from ~6 MB/s to ~20-30 MB/s)
+
+---
+
 ## Quick Reference
 
 ### Critical Path (Minimum Viable Product)
@@ -308,8 +377,8 @@ For production-ready implementation:
 
 ### Full Feature Set
 For complete implementation with all features:
-- All tasks (1-56)
-- **Total Duration:** ~10-14 weeks + analysis fixes
+- All tasks (1-69)
+- **Total Duration:** ~10-14 weeks + analysis fixes + performance optimization
 
 ### Coverage Improvement (Phase 11)
 **For immediate improvement (recommended):**
@@ -366,10 +435,12 @@ For complete implementation with all features:
 
 ---
 
-**Last Updated:** 2025-12-17
-**Document Version:** 1.8
+**Last Updated:** 2026-03-06
+**Document Version:** 2.0
 
 ## Recent Changes
+- **2026-03-06**: Added **Phase 13** (Performance Optimization) - 13 new tasks (57-69) based on comprehensive profiling analysis. Current throughput is 6.19 MB/s (43.6x slower than json_decode). Plan targets 3-5x improvement through hot-path buffer optimization, bulk scanning, allocation reduction, and lazy position tracking. Organized in 4 sub-phases by impact priority.
+- **2026-03-06**: **Completed Phase 10** (Analysis Report Fixes) - All 13 tasks (37-49) complete. Includes: stream position reset in fluent methods, UTF-16 lone surrogate validation, negative index validation, integer overflow handling, ObjectIterator cache limits (FIFO eviction), PathFilter depth tracking, isAssociativeArray optimization, PathExpression analysis caching, PHPStan ignore review, IOException file path consistency, unused Config constants removal, ReDoS prevention in filter expressions, readChunk concatenation optimization. 37 new tests added.
 - **2025-12-17**: Added Phase 12 (Advanced Streaming Features) - Task 56 (Nested Wildcard Streaming) to implement true streaming for patterns like `$.users[*].posts[*]`. This was deferred from Task 25 due to complexity.
 - **2025-12-11**: Added Phase 11 (Coverage Improvement to 98%+) - 5 new tasks (50-55) to improve coverage from 97.4% to maximum practical level. Comprehensive analysis shows 100% coverage is not achievable (defensive code, tool limitations, race conditions). Recommended: Execute Phase 11.1 (tasks 50, 52, 54) for 98.1% coverage in 2-3 hours.
 - **2025-12-11**: Updated Phase 9 status to Complete - Maximum practical coverage (97.4%) achieved, remaining 2.6% is defensive/unreachable code.

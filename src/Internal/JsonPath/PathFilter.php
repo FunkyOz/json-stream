@@ -4,17 +4,22 @@ declare(strict_types=1);
 
 namespace JsonStream\Internal\JsonPath;
 
+use JsonStream\Config;
+use JsonStream\Exception\ParseException;
+
 /**
  * Filters parsed JSON data based on JSONPath expression
  *
  * Walks through JSON tree and extracts values that match the path.
+ * Enforces depth limits to prevent stack overflow from deeply nested data.
  *
  * @internal
  */
 final class PathFilter
 {
     public function __construct(
-        private readonly PathEvaluator $evaluator
+        private readonly PathEvaluator $evaluator,
+        private readonly int $maxDepth = Config::DEFAULT_MAX_DEPTH
     ) {
     }
 
@@ -23,6 +28,8 @@ final class PathFilter
      *
      * @param  mixed  $data  Parsed JSON data
      * @return array<mixed> Matching values
+     *
+     * @throws ParseException If depth limit is exceeded
      */
     public function extract(mixed $data): array
     {
@@ -35,7 +42,7 @@ final class PathFilter
         }
 
         // Walk the tree to find matches
-        $this->walk($data, $results);
+        $this->walk($data, $results, 0);
 
         return $results;
     }
@@ -45,12 +52,21 @@ final class PathFilter
      *
      * @param  mixed  $value  Current value
      * @param  array<mixed>  $results  Results accumulator
+     * @param  int  $depth  Current depth
+     *
+     * @throws ParseException If depth limit is exceeded
      */
-    private function walk(mixed $value, array &$results): void
+    private function walk(mixed $value, array &$results, int $depth): void
     {
+        if ($depth > $this->maxDepth) {
+            throw new ParseException(
+                "Maximum depth of $this->maxDepth exceeded during path traversal"
+            );
+        }
+
         if (is_array($value)) {
             // Check if it's an associative array (object) or indexed array
-            if ($this->isAssociativeArray($value)) {
+            if (! empty($value) && ! array_is_list($value)) {
                 // Walk object properties
                 foreach ($value as $key => $item) {
                     $this->evaluator->enterLevel($key, $item);
@@ -59,7 +75,7 @@ final class PathFilter
                         $results[] = $item;
                     }
 
-                    $this->walk($item, $results);
+                    $this->walk($item, $results, $depth + 1);
                     $this->evaluator->exitLevel();
                 }
             } else {
@@ -71,24 +87,10 @@ final class PathFilter
                         $results[] = $item;
                     }
 
-                    $this->walk($item, $results);
+                    $this->walk($item, $results, $depth + 1);
                     $this->evaluator->exitLevel();
                 }
             }
         }
-    }
-
-    /**
-     * Check if array is associative (object-like)
-     *
-     * @param  array<mixed>  $array
-     */
-    private function isAssociativeArray(array $array): bool
-    {
-        if (empty($array)) {
-            return false;
-        }
-
-        return ! array_is_list($array);
     }
 }

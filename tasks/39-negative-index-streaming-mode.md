@@ -1,6 +1,6 @@
 ---
 title: Document and Handle Negative Array Index Limitations in Streaming Mode
-status: todo
+status: done
 priority: High
 description: Document limitations of negative indices in streaming mode and add validation
 ---

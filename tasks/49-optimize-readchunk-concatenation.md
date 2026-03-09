@@ -1,6 +1,6 @@
 ---
 title: Optimize String Concatenation in BufferManager::readChunk()
-status: todo
+status: done
 priority: Low
 description: Replace string concatenation in loop with array implode for better performance
 ---
