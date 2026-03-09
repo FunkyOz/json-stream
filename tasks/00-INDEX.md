@@ -4,13 +4,12 @@ This directory contains all implementation tasks for the JsonStream PHP library,
 
 ## Overview
 
-**Total Tasks:** 68
-**Completed Tasks:** 49 (72%)
-**Current Status:** v1.0 Release Ready - Reader-Only | 97.4% Coverage | Phase 10 Analysis Fixes Complete | Phase 13 Performance Plan Created
-**Estimated Timeline:** 8-12 weeks for complete implementation + 8-10 hours for 100% coverage + 2-10 hours for 98%+ coverage + Analysis fixes + Performance optimization
+**Total Tasks:** 62
+**Completed Tasks:** 49 (79%)
+**Current Status:** v1.0 Release Ready - Reader-Only | 97.4% Coverage | Phase 10 Analysis Fixes Complete | Phase 12 Performance Plan Created
+**Estimated Timeline:** 8-12 weeks for complete implementation + Analysis fixes + Performance optimization
 
 **Phase 10 Complete**: All 13 analysis report fixes implemented (Tasks 37-49). Security hardening, code quality improvements, and optimizations applied.
-**Coverage Improvement Phase Added**: Phase 11 added with 5 tasks to improve coverage from 97.4% to 98%+ (maximum practical level)
 **All Core Tasks Complete**: JsonStream v1.0 is ready for release as a reader-only library.
 **Phase 9 Complete**: Maximum practical coverage achieved (97.4%). Remaining 2.6% is defensive/unreachable code.
 **Phase 8 Complete**: Writer feature preserved in `feature/writer` branch. Main branch contains reader-only functionality.
@@ -223,55 +222,7 @@ Address issues found in comprehensive code analysis (ANALYSIS_REPORT.md, Dec 8, 
 
 ---
 
-## Phase 11: Coverage Improvement to 98%+ (High Priority)
-
-Improve test coverage from 97.4% to maximum practical level (~98-98.5%). After comprehensive analysis, 100% coverage is not achievable or valuable - remaining code consists of defensive error handling, coverage tool limitations, and race conditions. See [coverage-analysis-100-percent.md](coverage-analysis-100-percent.md) for detailed analysis.
-
-### Phase 11.1: High-Priority Coverage Improvements (Recommended)
-
-Quick wins that improve coverage with meaningful tests.
-
-| # | Task | Priority | Complexity | Status | Coverage Gain |
-|---|------|----------|------------|--------|---------------|
-| 50 | [Verify PathEvaluator Coverage](50-verify-pathevaluator-coverage.md) | High | Low | `todo` | +0.1% |
-| 52 | [Add UTF-8 Character Tests](52-utf8-character-coverage.md) | High | Low | `todo` | +0.5% |
-| 54 | [StreamReader Edge Cases](54-streamreader-edge-cases.md) | High | Low | `todo` | +0.1% |
-
-**Sub-Phase Duration:** ~2-3 hours
-**Deliverables:** +0.7% coverage improvement (97.4% → 98.1%)
-**Recommendation:** ✅ Execute these tasks for best ROI
-
-### Phase 11.2: Medium-Priority Coverage Improvements (Optional)
-
-Edge cases that are reachable but uncommon in practice.
-
-| # | Task | Priority | Complexity | Status | Coverage Gain |
-|---|------|----------|------------|--------|---------------|
-| 51 | [PathParser Edge Cases](51-pathparser-edge-cases.md) | Medium | Medium | `todo` | +0.2% |
-| 53 | [Complex Streaming Patterns](53-complex-streaming-patterns.md) | Medium | High | `todo` | +0.3% |
-
-**Sub-Phase Duration:** ~4-6 hours
-**Deliverables:** +0.5% coverage improvement (98.1% → 98.6%)
-**Recommendation:** ⚠️ Optional - diminishing returns
-
-### Phase 11.3: Documentation
-
-Document intentionally uncovered code.
-
-| # | Task | Priority | Complexity | Status | Coverage Gain |
-|---|------|----------|------------|--------|---------------|
-| 55 | [Document Defensive Code](55-document-defensive-code.md) | Low | Low | `todo` | 0% |
-
-**Sub-Phase Duration:** ~1 hour
-**Deliverables:** Code comments and DEFENSIVE_CODE.md explaining uncovered defensive code
-**Recommendation:** ✅ Always execute for maintainability
-
-**Overall Phase Duration:** ~2-10 hours (depending on priorities)
-**Expected Final Coverage:** 98.1% (Phase 11.1) or 98.6% (Phase 11.1 + 11.2)
-
----
-
-## Phase 12: Advanced Streaming Features (Low Priority)
+## Phase 11: Advanced Streaming Features (Low Priority)
 
 Advanced streaming optimizations deferred from earlier tasks. These provide memory improvements for complex patterns but are not required for production use.
 
@@ -286,7 +237,7 @@ Advanced streaming optimizations deferred from earlier tasks. These provide memo
 
 ---
 
-## Phase 13: Performance Optimization (High Priority)
+## Phase 12: Performance Optimization (High Priority)
 
 Comprehensive performance optimization plan based on profiling analysis. Current throughput is ~6.19 MB/s (43.6x slower than json_decode). Target: 3-5x improvement through hot-path optimization.
 
@@ -296,7 +247,7 @@ Comprehensive performance optimization plan based on profiling analysis. Current
 - String throughput: 10.78 MB/s
 - Number throughput: 4.74 MB/s
 
-### Phase 13.1: Critical Hot Path (Highest Impact)
+### Phase 12.1: Critical Hot Path (Highest Impact)
 
 Foundation optimizations that unlock all subsequent improvements.
 
@@ -309,7 +260,7 @@ Foundation optimizations that unlock all subsequent improvements.
 **Deliverables:** Eliminated per-byte method call overhead, removed expensive encoding checks from hot path
 **Recommendation:** Do these first - they're the foundation for all other optimizations
 
-### Phase 13.2: Bulk Scanning Optimizations (High Impact)
+### Phase 12.2: Bulk Scanning Optimizations (High Impact)
 
 Replace byte-by-byte scanning with bulk C-level operations.
 
@@ -323,7 +274,7 @@ Replace byte-by-byte scanning with bulk C-level operations.
 **Sub-Phase Duration:** ~2-3 weeks
 **Deliverables:** Bulk scanning for strings, numbers, whitespace; dedicated skip fast path
 
-### Phase 13.3: Allocation & Overhead Reduction (Medium Impact)
+### Phase 12.3: Allocation & Overhead Reduction (Medium Impact)
 
 Reduce object allocation and per-operation overhead.
 
@@ -337,7 +288,7 @@ Reduce object allocation and per-operation overhead.
 **Sub-Phase Duration:** ~1-2 weeks
 **Deliverables:** Fewer allocations, cached evaluator state, deferred position tracking
 
-### Phase 13.4: Infrastructure & Research (Supporting)
+### Phase 12.4: Infrastructure & Research (Supporting)
 
 Benchmarking infrastructure and exploratory optimizations.
 
@@ -379,16 +330,6 @@ For production-ready implementation:
 For complete implementation with all features:
 - All tasks (1-69)
 - **Total Duration:** ~10-14 weeks + analysis fixes + performance optimization
-
-### Coverage Improvement (Phase 11)
-**For immediate improvement (recommended):**
-- Tasks 50, 52, 54 (High-priority) - Quick wins → 98.1% coverage
-
-**For maximum coverage (optional):**
-- Tasks 51, 53 (Medium-priority) - Edge cases → 98.6% coverage
-- Task 55 (Documentation) - Always do for maintainability
-
-**Note:** 100% coverage not achievable - remaining 1.4-1.9% is defensive/unreachable code
 
 ### Analysis Report Fixes (Phase 10)
 **For v1.0.1 patch release:**
@@ -435,14 +376,14 @@ For complete implementation with all features:
 
 ---
 
-**Last Updated:** 2026-03-06
-**Document Version:** 2.0
+**Last Updated:** 2026-03-09
+**Document Version:** 2.1
 
 ## Recent Changes
-- **2026-03-06**: Added **Phase 13** (Performance Optimization) - 13 new tasks (57-69) based on comprehensive profiling analysis. Current throughput is 6.19 MB/s (43.6x slower than json_decode). Plan targets 3-5x improvement through hot-path buffer optimization, bulk scanning, allocation reduction, and lazy position tracking. Organized in 4 sub-phases by impact priority.
+- **2026-03-09**: Removed Phase 11 (Coverage Improvement) - no longer needed. Deleted tasks 50-55. Renumbered Phase 12 → 11, Phase 13 → 12.
+- **2026-03-06**: Added **Phase 12** (Performance Optimization) - 13 new tasks (57-69) based on comprehensive profiling analysis. Current throughput is 6.19 MB/s (43.6x slower than json_decode). Plan targets 3-5x improvement through hot-path buffer optimization, bulk scanning, allocation reduction, and lazy position tracking. Organized in 4 sub-phases by impact priority.
 - **2026-03-06**: **Completed Phase 10** (Analysis Report Fixes) - All 13 tasks (37-49) complete. Includes: stream position reset in fluent methods, UTF-16 lone surrogate validation, negative index validation, integer overflow handling, ObjectIterator cache limits (FIFO eviction), PathFilter depth tracking, isAssociativeArray optimization, PathExpression analysis caching, PHPStan ignore review, IOException file path consistency, unused Config constants removal, ReDoS prevention in filter expressions, readChunk concatenation optimization. 37 new tests added.
-- **2025-12-17**: Added Phase 12 (Advanced Streaming Features) - Task 56 (Nested Wildcard Streaming) to implement true streaming for patterns like `$.users[*].posts[*]`. This was deferred from Task 25 due to complexity.
-- **2025-12-11**: Added Phase 11 (Coverage Improvement to 98%+) - 5 new tasks (50-55) to improve coverage from 97.4% to maximum practical level. Comprehensive analysis shows 100% coverage is not achievable (defensive code, tool limitations, race conditions). Recommended: Execute Phase 11.1 (tasks 50, 52, 54) for 98.1% coverage in 2-3 hours.
+- **2025-12-17**: Added Phase 11 (Advanced Streaming Features) - Task 56 (Nested Wildcard Streaming) to implement true streaming for patterns like `$.users[*].posts[*]`. This was deferred from Task 25 due to complexity.
 - **2025-12-11**: Updated Phase 9 status to Complete - Maximum practical coverage (97.4%) achieved, remaining 2.6% is defensive/unreachable code.
 - **2025-12-11**: Added Phase 10 (Analysis Report Fixes) - 13 new tasks (37-49) to address issues found in comprehensive code analysis (ANALYSIS_REPORT.md, Dec 8, 2025). Critical issues include stream position handling, UTF-16 validation, and negative index documentation. Security improvements include integer overflow handling, cache limits, and ReDoS prevention. Code quality improvements include optimizations and cleanup.
 - **2025-12-05**: **Completed Task 26** (Remove Writer for v1.0 Release) - Writer feature preserved in `feature/writer` branch, main branch is now reader-only. All tests passing, benchmarks working, v1.0 ready for release.
