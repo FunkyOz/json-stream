@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-03-09
+
+### Security
+
+- **UTF-16 Lone Surrogate Validation**: Lone high/low UTF-16 surrogates in JSON strings now throw `ParseException` instead of producing invalid UTF-8 output
+- **Integer Overflow Handling**: Numbers exceeding `PHP_INT_MAX` are now correctly parsed as floats instead of silently overflowing
+- **ObjectIterator Cache Limits**: Added bounded FIFO cache (default 1000 entries) to prevent unbounded memory growth from very large JSON objects
+- **PathFilter Depth Tracking**: Enforces configurable depth limit during path traversal to prevent stack overflow from deeply nested data
+- **ReDoS Prevention**: Filter expressions are limited to 1000 characters to prevent regular expression denial-of-service attacks
+
+### Fixed
+
+- **Stream Position in Fluent Methods**: `withPath()`, `withBufferSize()`, and `withMaxDepth()` now correctly reset seekable streams after partial reads; throws `IOException` for non-seekable streams
+- **IOException File Path Consistency**: `StreamReader::fromFile()` now consistently sets the file path on all `IOException` instances via `setFilePath()`
+- **Negative Index Validation**: `ArraySliceSegment` now throws `PathException` for negative indices which are unsupported in streaming mode
+
+### Changed
+
+- **PathExpression Analysis Caching**: `hasRecursive()` and `canUseSimpleStreaming()` results are now cached at construction time for better performance
+- **Optimized `isAssociativeArray()`**: Replaced custom method with inline `array_is_list()` check in `PathFilter`
+- **Optimized `readChunk()` Concatenation**: `BufferManager::readChunk()` now uses array collection with `implode()` instead of repeated string concatenation
+- **PHPStan Ignore Comments**: Added descriptive explanations to all `@phpstan-ignore-next-line` annotations
+- **Removed Unused Config Constants**: Removed `MODE_RELAXED`, `ENCODE_NUMERIC_CHECK`, `ENCODE_PRETTY_PRINT`, `ENCODE_UNESCAPED_SLASHES`, and `ENCODE_UNESCAPED_UNICODE` constants that were reserved for unimplemented features
+
 ## [1.1.0] - 2025-12-17
 
 ### Added
