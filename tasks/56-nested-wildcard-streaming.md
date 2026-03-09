@@ -1,6 +1,6 @@
 ---
 title: Nested Wildcard Streaming Support
-status: todo
+status: done
 priority: Low
 description: Implement true streaming for nested wildcard patterns like $.users[*].posts[*] to avoid PathFilter memory buffering
 ---
@@ -220,14 +220,14 @@ Keep PathFilter fallback for:
 - Very complex patterns that would require excessive complexity
 
 ## Acceptance Criteria
-- [ ] `$.users[*].posts[*]` uses streaming (not PathFilter fallback)
-- [ ] `$.matrix[*][*]` streams correctly for 2D arrays
-- [ ] `$.a[*].b[*].c[*]` works for 3+ level nesting
-- [ ] Memory usage is O(single outer element) during streaming
-- [ ] All existing tests pass (568+ tests)
-- [ ] New integration tests cover all edge cases
-- [ ] Performance benchmark shows improvement over PathFilter for large nested structures
-- [ ] Code follows project conventions (PSR-12, PHPStan clean, Pint formatted)
+- [x] `$.users[*].posts[*]` uses streaming (not PathFilter fallback)
+- [x] `$.matrix[*][*]` streams correctly for 2D arrays
+- [x] `$.a[*].b[*].c[*]` works for 3+ level nesting
+- [x] Memory usage is O(single outer element) during streaming
+- [x] All existing tests pass (631 tests, 0 failures)
+- [x] New integration tests cover all edge cases (16 integration + 17 unit tests)
+- [x] Performance benchmark shows improvement over PathFilter for large nested structures
+- [x] Code follows project conventions (PSR-12, PHPStan clean, Pint formatted)
 
 ## Success Metrics
 - Memory: <10MB delta for streaming 10,000 nested items

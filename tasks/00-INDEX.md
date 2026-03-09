@@ -4,9 +4,9 @@ This directory contains all implementation tasks for the JsonStream PHP library,
 
 ## Overview
 
-**Total Tasks:** 62
-**Completed Tasks:** 49 (79%)
-**Current Status:** v1.0 Release Ready - Reader-Only | 97.4% Coverage | Phase 10 Analysis Fixes Complete | Phase 12 Performance Plan Created
+**Total Tasks:** 63
+**Completed Tasks:** 51 (81%)
+**Current Status:** v1.0 Release Ready - Reader-Only | 97.4% Coverage | Phase 11 Nested Wildcard Streaming Complete | Phase 12 Performance Plan Created
 **Estimated Timeline:** 8-12 weeks for complete implementation + Analysis fixes + Performance optimization
 
 **Phase 10 Complete**: All 13 analysis report fixes implemented (Tasks 37-49). Security hardening, code quality improvements, and optimizations applied.
@@ -228,12 +228,13 @@ Advanced streaming optimizations deferred from earlier tasks. These provide memo
 
 | # | Task | Priority | Complexity | Status | Dependencies |
 |---|------|----------|------------|--------|--------------|
-| 56 | [Nested Wildcard Streaming](56-nested-wildcard-streaming.md) | Low | High | `todo` | Task 25 |
+| 56 | [Nested Wildcard Streaming](56-nested-wildcard-streaming.md) | Low | High | `done` | Task 25 |
+| 70 | [Numeric String Bracket Notation](70-numeric-string-bracket-notation.md) | Medium | Low | `done` | None |
 
-**Phase Duration:** ~1-2 weeks
-**Deliverables:** True streaming for nested wildcard patterns like `$.users[*].posts[*]`
+**Phase Duration:** Complete
+**Deliverables:** True streaming for nested wildcard patterns like `$.users[*].posts[*]`, bracket notation RFC 9535 compliance
 
-**Background:** Task 25 implemented complex pattern streaming but deferred nested wildcards (multiple `[*]` operators) due to complexity. These patterns currently fall back to PathFilter which buffers entire JSON in memory.
+**Completed:** Nested wildcard streaming implemented. Patterns like `$.users[*].posts[*]`, `$.matrix[*][*]`, and `$.a[*].b[*].c[*]` now use true streaming instead of PathFilter fallback. 33 new tests added (16 integration + 17 unit).
 
 ---
 
@@ -377,9 +378,11 @@ For complete implementation with all features:
 ---
 
 **Last Updated:** 2026-03-09
-**Document Version:** 2.1
+**Document Version:** 2.2
 
 ## Recent Changes
+- **2026-03-09**: **Completed Phase 11** (Advanced Streaming Features) - Tasks 56 and 70 done. Nested wildcard streaming and numeric string bracket notation (RFC 9535 compliance). Removed 4 stale skipped tests. 651 total tests, 0 skipped.
+- **2026-03-09**: **Completed Task 56** (Nested Wildcard Streaming) - Patterns like `$.users[*].posts[*]`, `$.matrix[*][*]`, and deeply nested wildcards now use true streaming instead of PathFilter fallback. Added `walkValueWithWildcards()` to PathEvaluator, updated PathExpression to allow multiple wildcards, enhanced Parser for nested extraction. 33 new tests (16 integration + 17 unit), 631 total tests passing.
 - **2026-03-09**: Removed Phase 11 (Coverage Improvement) - no longer needed. Deleted tasks 50-55. Renumbered Phase 12 → 11, Phase 13 → 12.
 - **2026-03-06**: Added **Phase 12** (Performance Optimization) - 13 new tasks (57-69) based on comprehensive profiling analysis. Current throughput is 6.19 MB/s (43.6x slower than json_decode). Plan targets 3-5x improvement through hot-path buffer optimization, bulk scanning, allocation reduction, and lazy position tracking. Organized in 4 sub-phases by impact priority.
 - **2026-03-06**: **Completed Phase 10** (Analysis Report Fixes) - All 13 tasks (37-49) complete. Includes: stream position reset in fluent methods, UTF-16 lone surrogate validation, negative index validation, integer overflow handling, ObjectIterator cache limits (FIFO eviction), PathFilter depth tracking, isAssociativeArray optimization, PathExpression analysis caching, PHPStan ignore review, IOException file path consistency, unused Config constants removal, ReDoS prevention in filter expressions, readChunk concatenation optimization. 37 new tests added.

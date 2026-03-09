@@ -228,12 +228,12 @@ describe('PathExpression', function (): void {
         expect($expression->canUseSimpleStreaming())->toBeTrue();
     });
 
-    it('canUseSimpleStreaming returns false for multiple wildcards', function (): void {
+    it('canUseSimpleStreaming returns true for multiple wildcards', function (): void {
         $parser = new PathParser();
         $expression = $parser->parse('$.items[*].nested[*]');
 
-        // Multiple wildcards require nested streaming - not yet supported
-        expect($expression->canUseSimpleStreaming())->toBeFalse();
+        // Multiple wildcards are now supported via nested wildcard streaming
+        expect($expression->canUseSimpleStreaming())->toBeTrue();
     });
 
     it('canUseSimpleStreaming returns true for filter expressions', function (): void {

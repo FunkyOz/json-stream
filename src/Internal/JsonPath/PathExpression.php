@@ -192,7 +192,13 @@ final class PathExpression
      *
      * Returns false for complex patterns that need full tree walking:
      * - $..prop - recursive descent
-     * - $.users[*].posts[*] - multiple wildcards (requires nested streaming)
+     * - $.users[*].posts[*] - multiple wildcards (streamed with nested extraction)
+     * - $.matrix[*][*] - consecutive wildcards (2D arrays)
+     * - $.a[*].b[*].c[*] - deeply nested wildcards
+     *
+     * Returns false for complex patterns that need full tree walking:
+     * - $..prop - recursive descent
+     * - Patterns mixing wildcards with filter expressions
      *
      * @return bool True if simple streaming can be used
      */
@@ -240,13 +246,8 @@ final class PathExpression
         }
 
         // Don't stream if:
-        // - Multiple wildcards (nested wildcard streaming not yet implemented)
         // - Multiple filters
-        // - Wildcard + filter combination
-        if ($wildcardCount > 1) {
-            return false;
-        }
-
+        // - Wildcard + filter combination (too complex)
         if ($filterCount > 1) {
             return false;
         }
@@ -256,8 +257,9 @@ final class PathExpression
         }
 
         // We can stream:
-        // - Single wildcard with any number of properties after it: $.users[*].name
-        // - Single filter with any number of properties after it: $.users[?(@.age > 18)].email
+        // - Single or multiple wildcards: $.users[*], $.users[*].posts[*], $.matrix[*][*]
+        // - Wildcard with property extraction: $.users[*].name, $.users[*].posts[*].title
+        // - Single filter with properties: $.users[?(@.age > 18)].email
         // - Simple array access: $.users[0], $.users[0:10]
         return true;
     }

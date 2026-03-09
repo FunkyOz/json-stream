@@ -11,8 +11,6 @@ use JsonStream\Internal\JsonPath\PathEvaluator;
 use JsonStream\Internal\JsonPath\PathExpression;
 use JsonStream\Internal\JsonPath\PathFilter;
 use JsonStream\Internal\JsonPath\PathParser;
-use JsonStream\Internal\JsonPath\RootSegment;
-use JsonStream\Internal\JsonPath\WildcardSegment;
 use JsonStream\Reader\ObjectIterator;
 use JsonStream\Reader\StreamReader;
 

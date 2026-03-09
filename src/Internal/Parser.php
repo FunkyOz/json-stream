@@ -243,10 +243,21 @@ final class Parser
                     // We're at an array element that partially matches, and there are
                     // remaining segments to extract (e.g., $.users[*].name)
                     $value = $this->parseValue();
-                    $remainingSegments = $this->pathEvaluator->getRemainingSegments();
-                    $extracted = $this->pathEvaluator->walkValue($value, $remainingSegments);
-                    if ($extracted !== null) {
-                        yield $resultIndex++ => $extracted;
+
+                    if ($this->pathEvaluator->hasNestedWildcardsRemaining()) {
+                        // Nested wildcards (e.g., $.users[*].posts[*]) - expand all inner matches
+                        $allRemaining = $this->pathEvaluator->getAllRemainingSegments();
+                        $results = $this->pathEvaluator->walkValueWithWildcards($value, $allRemaining);
+                        foreach ($results as $result) {
+                            yield $resultIndex++ => $result;
+                        }
+                    } else {
+                        // Simple extraction (e.g., $.users[*].name)
+                        $remainingSegments = $this->pathEvaluator->getRemainingSegments();
+                        $extracted = $this->pathEvaluator->walkValue($value, $remainingSegments);
+                        if ($extracted !== null) {
+                            yield $resultIndex++ => $extracted;
+                        }
                     }
                     $this->pathEvaluator->exitLevel();
                 } elseif ($matchesCurrent) {

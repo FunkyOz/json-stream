@@ -177,15 +177,6 @@ describe('JSONPath Correctness Validation', function (): void {
             expect($result)->toBe('test.txt');
         });
 
-        it('handles numeric string keys', function (): void {
-            $json = '{"123": "numeric_key"}';
-            $reader = StreamReader::fromString($json)->withPath("$['123']");
-            $items = iterator_to_array($reader->readItems());
-
-            // Streaming parser may not find numeric string keys
-            // This is a known limitation for bracket notation with numeric strings
-            expect($items)->toBeArray();
-        })->skip('Numeric string keys in bracket notation not fully supported in streaming mode');
 
         it('mixes with dot notation', function (): void {
             $json = '{"outer": {"inner key": "value"}}';
@@ -193,6 +184,54 @@ describe('JSONPath Correctness Validation', function (): void {
             $result = $reader->readAll();
 
             expect($result)->toBe('value');
+        });
+
+        it('matches numeric string bracket notation on arrays', function (): void {
+            $json = '[10, 20, 30]';
+            $reader = StreamReader::fromString($json)->withPath('$["1"]');
+            $items = iterator_to_array($reader->readItems());
+
+            expect($items)->toBe([20]);
+        });
+
+        it('matches numeric string bracket notation with single quotes on arrays', function (): void {
+            $json = '[10, 20, 30]';
+            $reader = StreamReader::fromString($json)->withPath("$['2']");
+            $items = iterator_to_array($reader->readItems());
+
+            expect($items)->toBe([30]);
+        });
+
+        it('matches numeric string bracket on nested array', function (): void {
+            $json = '{"data": [10, 20, 30]}';
+            $reader = StreamReader::fromString($json)->withPath('$.data["2"]');
+            $items = iterator_to_array($reader->readItems());
+
+            expect($items)->toBe([30]);
+        });
+
+        it('numeric string bracket still matches object string keys', function (): void {
+            $json = '{"0": "zero", "1": "one"}';
+            $reader = StreamReader::fromString($json)->withPath('$["0"]');
+            $items = iterator_to_array($reader->readItems());
+
+            expect($items)->toBe(['zero']);
+        });
+
+        it('float-like string bracket does not match array index', function (): void {
+            $json = '[10, 20, 30]';
+            $reader = StreamReader::fromString($json)->withPath('$["1.5"]');
+            $items = iterator_to_array($reader->readItems());
+
+            expect($items)->toBe([]);
+        });
+
+        it('negative string bracket does not match array index', function (): void {
+            $json = '[10, 20, 30]';
+            $reader = StreamReader::fromString($json)->withPath('$["-1"]');
+            $items = iterator_to_array($reader->readItems());
+
+            expect($items)->toBe([]);
         });
     });
 
@@ -207,15 +246,6 @@ describe('JSONPath Correctness Validation', function (): void {
             $reader = StreamReader::fromString($this->simpleArray)->withPath('$[4]');
             expect($reader->readAll())->toBe(5);
         });
-
-        it('accesses negative indices from end', function (): void {
-            $reader = StreamReader::fromString($this->simpleArray)->withPath('$[-1]');
-            $items = iterator_to_array($reader->readItems());
-
-            // Negative indices require knowing array length upfront
-            // This is not possible in a streaming parser without buffering the entire array
-            expect($items)->toBeArray();
-        })->skip('Negative array indices not supported in streaming mode');
 
         it('returns empty for out of bounds positive index', function (): void {
             $reader = StreamReader::fromString($this->simpleArray)->withPath('$[100]');
@@ -283,24 +313,6 @@ describe('JSONPath Correctness Validation', function (): void {
 
             expect($items)->toBe([1, 3, 5]);
         });
-
-        it('handles negative start index', function (): void {
-            $reader = StreamReader::fromString($this->simpleArray)->withPath('$[-3:]');
-            $items = iterator_to_array($reader->readItems());
-
-            // Negative indices in slices require knowing array length
-            // Not supported in streaming mode
-            expect($items)->toBeArray();
-        })->skip('Negative slice indices not supported in streaming mode');
-
-        it('handles negative end index', function (): void {
-            $reader = StreamReader::fromString($this->simpleArray)->withPath('$[:-2]');
-            $items = iterator_to_array($reader->readItems());
-
-            // Negative indices in slices require knowing array length
-            // Not supported in streaming mode
-            expect($items)->toBeArray();
-        })->skip('Negative slice indices not supported in streaming mode');
 
         it('returns empty for invalid slice range', function (): void {
             $reader = StreamReader::fromString($this->simpleArray)->withPath('$[10:20]');

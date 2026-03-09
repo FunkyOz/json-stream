@@ -75,6 +75,9 @@ final class PathEvaluator
      * For patterns like $.users[*].name, when we're at the wildcard position,
      * this returns true because we need to extract .name from each matched element.
      *
+     * Also returns true for nested wildcards like $.users[*].posts[*], where
+     * remaining segments include wildcards that need nested extraction.
+     *
      * @return bool True if we should parse and extract remaining segments
      */
     public function shouldExtractFromValue(): bool
@@ -93,7 +96,8 @@ final class PathEvaluator
         }
 
         // Check if there are remaining segments after current depth
-        $remaining = $this->getRemainingSegments();
+        // Use getAllRemainingSegments to include wildcards for nested patterns
+        $remaining = $this->getAllRemainingSegments();
 
         return ! empty($remaining);
     }
@@ -451,6 +455,126 @@ final class PathEvaluator
         }
 
         return $remaining;
+    }
+
+    /**
+     * Get all remaining segments after the current match point
+     *
+     * Unlike getRemainingSegments(), this includes WildcardSegment,
+     * FilterSegment, and ArraySliceSegment. Used for nested wildcard
+     * streaming where we need to walk through wildcards in parsed values.
+     *
+     * @return PathSegment[] All remaining segments after current position
+     */
+    public function getAllRemainingSegments(): array
+    {
+        $segments = $this->expression->getSegments();
+        $depth = count($this->pathStack);
+        $currentSegmentIndex = $depth;
+
+        $remaining = [];
+        for ($i = $currentSegmentIndex + 1; $i < count($segments); $i++) {
+            $remaining[] = $segments[$i];
+        }
+
+        return $remaining;
+    }
+
+    /**
+     * Check if remaining segments contain nested wildcards
+     *
+     * @return bool True if there are wildcard segments after current match point
+     */
+    public function hasNestedWildcardsRemaining(): bool
+    {
+        foreach ($this->getAllRemainingSegments() as $segment) {
+            if ($segment instanceof WildcardSegment) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Walk into a parsed value expanding wildcards to yield all matching elements
+     *
+     * For nested wildcard patterns like $.users[*].posts[*], after streaming the
+     * outer array, this walks into each element and expands inner wildcards to
+     * return all matching values without buffering the entire structure.
+     *
+     * @param  mixed  $value  The parsed value to walk into
+     * @param  PathSegment[]  $segments  Segments including wildcards to expand
+     * @return array<int, mixed> All matching values from nested wildcard expansion
+     */
+    public function walkValueWithWildcards(mixed $value, array $segments): array
+    {
+        return $this->doWalkWithWildcards($value, $segments, 0);
+    }
+
+    /**
+     * Recursive walk that expands wildcards at each level
+     *
+     * @param  mixed  $value  Current value being walked
+     * @param  PathSegment[]  $segments  Segments to process
+     * @param  int  $index  Current segment index
+     * @return array<int, mixed> Matching values
+     */
+    private function doWalkWithWildcards(mixed $value, array $segments, int $index): array
+    {
+        if ($index >= count($segments)) {
+            return [$value];
+        }
+
+        $segment = $segments[$index];
+
+        if ($segment instanceof PropertySegment) {
+            if (! is_array($value)) {
+                return [];
+            }
+
+            $propertyName = $segment->getPropertyName();
+            if (! array_key_exists($propertyName, $value)) {
+                return [];
+            }
+
+            return $this->doWalkWithWildcards($value[$propertyName], $segments, $index + 1);
+        }
+
+        if ($segment instanceof ArrayIndexSegment) {
+            if (! is_array($value) || ! array_is_list($value)) {
+                return [];
+            }
+
+            $idx = $segment->getIndex();
+            if ($idx < 0) {
+                $idx = count($value) + $idx;
+            }
+
+            if (! array_key_exists($idx, $value)) {
+                return [];
+            }
+
+            return $this->doWalkWithWildcards($value[$idx], $segments, $index + 1);
+        }
+
+        if ($segment instanceof WildcardSegment) {
+            if (! is_array($value)) {
+                return [];
+            }
+
+            $results = [];
+            foreach ($value as $element) {
+                foreach ($this->doWalkWithWildcards($element, $segments, $index + 1) as $result) {
+                    $results[] = $result;
+                }
+            }
+
+            return $results;
+        }
+
+        // Unsupported segment type in walk
+        return [];
     }
 
     /**

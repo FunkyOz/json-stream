@@ -100,6 +100,7 @@ $reader->close();
 - Array indices: `$.users[0]`, `$.users[5]`
 - Array slices: `$.users[0:10]`, `$.users[10:]`
 - Wildcards: `$.users[*].name`
+- Nested wildcards: `$.users[*].posts[*]`, `$.matrix[*][*]`
 
 ### 2. Pagination with Skip/Limit
 

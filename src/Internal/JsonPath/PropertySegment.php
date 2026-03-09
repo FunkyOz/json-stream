@@ -26,7 +26,17 @@ final class PropertySegment extends PathSegment
 
     public function matches(string|int $key, mixed $value, int $depth): bool
     {
-        return $key === $this->property;
+        if ($key === $this->property) {
+            return true;
+        }
+
+        // Numeric string property can also match integer array indices
+        // e.g., $["1"] should match array index 1 per RFC 9535
+        if (is_int($key) && $key >= 0 && $this->property !== '' && ctype_digit($this->property)) {
+            return $key === (int) $this->property;
+        }
+
+        return false;
     }
 
     public function isRecursive(): bool

@@ -423,4 +423,238 @@ describe('PathEvaluator', function (): void {
 
         expect($evaluator->canTerminateEarly())->toBeTrue();
     });
+
+    // Tests for getAllRemainingSegments()
+    it('getAllRemainingSegments returns all segments after current depth including wildcards', function (): void {
+        $parser = new PathParser();
+        $expression = $parser->parse('$.users[*].posts[*]');
+        $evaluator = new PathEvaluator($expression);
+
+        $evaluator->enterLevel('users', null);
+        $evaluator->enterLevel(0, null);
+
+        $remaining = $evaluator->getAllRemainingSegments();
+
+        // At depth 2 (users, 0), segments are [Root, Property(users), Wildcard, Property(posts), Wildcard]
+        // After depth 2 (segment index 2 = Wildcard), remaining should be [Property(posts), Wildcard]
+        expect(count($remaining))->toBe(2);
+    });
+
+    it('getAllRemainingSegments returns empty when at end of path', function (): void {
+        $parser = new PathParser();
+        $expression = $parser->parse('$.items[*]');
+        $evaluator = new PathEvaluator($expression);
+
+        $evaluator->enterLevel('items', null);
+        $evaluator->enterLevel(0, null);
+
+        $remaining = $evaluator->getAllRemainingSegments();
+
+        expect($remaining)->toBe([]);
+    });
+
+    // Tests for hasNestedWildcardsRemaining()
+    it('hasNestedWildcardsRemaining returns true for nested wildcard patterns', function (): void {
+        $parser = new PathParser();
+        $expression = $parser->parse('$.users[*].posts[*]');
+        $evaluator = new PathEvaluator($expression);
+
+        $evaluator->enterLevel('users', null);
+        $evaluator->enterLevel(0, null);
+
+        expect($evaluator->hasNestedWildcardsRemaining())->toBeTrue();
+    });
+
+    it('hasNestedWildcardsRemaining returns false for single wildcard patterns', function (): void {
+        $parser = new PathParser();
+        $expression = $parser->parse('$.users[*].name');
+        $evaluator = new PathEvaluator($expression);
+
+        $evaluator->enterLevel('users', null);
+        $evaluator->enterLevel(0, null);
+
+        expect($evaluator->hasNestedWildcardsRemaining())->toBeFalse();
+    });
+
+    it('hasNestedWildcardsRemaining returns false at end of path', function (): void {
+        $parser = new PathParser();
+        $expression = $parser->parse('$.items[*]');
+        $evaluator = new PathEvaluator($expression);
+
+        $evaluator->enterLevel('items', null);
+        $evaluator->enterLevel(0, null);
+
+        expect($evaluator->hasNestedWildcardsRemaining())->toBeFalse();
+    });
+
+    // Tests for walkValueWithWildcards()
+    it('walkValueWithWildcards expands single wildcard', function (): void {
+        $parser = new PathParser();
+        $expression = $parser->parse('$.users[*].posts[*]');
+        $evaluator = new PathEvaluator($expression);
+
+        $evaluator->enterLevel('users', null);
+        $evaluator->enterLevel(0, null);
+
+        $value = ['posts' => [1, 2, 3]];
+        $remaining = $evaluator->getAllRemainingSegments();
+        $results = $evaluator->walkValueWithWildcards($value, $remaining);
+
+        expect($results)->toBe([1, 2, 3]);
+    });
+
+    it('walkValueWithWildcards handles missing property', function (): void {
+        $parser = new PathParser();
+        $expression = $parser->parse('$.users[*].posts[*]');
+        $evaluator = new PathEvaluator($expression);
+
+        $evaluator->enterLevel('users', null);
+        $evaluator->enterLevel(0, null);
+
+        $value = ['name' => 'Alice']; // No 'posts' key
+        $remaining = $evaluator->getAllRemainingSegments();
+        $results = $evaluator->walkValueWithWildcards($value, $remaining);
+
+        expect($results)->toBe([]);
+    });
+
+    it('walkValueWithWildcards handles non-array value at wildcard', function (): void {
+        $parser = new PathParser();
+        $expression = $parser->parse('$.users[*].posts[*]');
+        $evaluator = new PathEvaluator($expression);
+
+        $evaluator->enterLevel('users', null);
+        $evaluator->enterLevel(0, null);
+
+        $value = ['posts' => 'not an array'];
+        $remaining = $evaluator->getAllRemainingSegments();
+        $results = $evaluator->walkValueWithWildcards($value, $remaining);
+
+        expect($results)->toBe([]);
+    });
+
+    it('walkValueWithWildcards handles non-array at property segment', function (): void {
+        $parser = new PathParser();
+        $expression = $parser->parse('$.users[*].posts[*]');
+        $evaluator = new PathEvaluator($expression);
+
+        $evaluator->enterLevel('users', null);
+        $evaluator->enterLevel(0, null);
+
+        $remaining = $evaluator->getAllRemainingSegments();
+        $results = $evaluator->walkValueWithWildcards('string value', $remaining);
+
+        expect($results)->toBe([]);
+    });
+
+    it('walkValueWithWildcards handles deeply nested wildcards', function (): void {
+        $parser = new PathParser();
+        $expression = $parser->parse('$.a[*].b[*].c[*]');
+        $evaluator = new PathEvaluator($expression);
+
+        $evaluator->enterLevel('a', null);
+        $evaluator->enterLevel(0, null);
+
+        $value = ['b' => [
+            ['c' => [1, 2]],
+            ['c' => [3]],
+        ]];
+        $remaining = $evaluator->getAllRemainingSegments();
+        $results = $evaluator->walkValueWithWildcards($value, $remaining);
+
+        expect($results)->toBe([1, 2, 3]);
+    });
+
+    it('walkValueWithWildcards handles empty segments', function (): void {
+        $parser = new PathParser();
+        $expression = $parser->parse('$.items[*]');
+        $evaluator = new PathEvaluator($expression);
+
+        $results = $evaluator->walkValueWithWildcards('hello', []);
+
+        expect($results)->toBe(['hello']);
+    });
+
+    it('walkValueWithWildcards handles array index segments', function (): void {
+        $parser = new PathParser();
+        $expression = $parser->parse('$.users[*].posts[0]');
+        $evaluator = new PathEvaluator($expression);
+
+        $evaluator->enterLevel('users', null);
+        $evaluator->enterLevel(0, null);
+
+        $value = ['posts' => ['first', 'second', 'third']];
+        $remaining = $evaluator->getAllRemainingSegments();
+        $results = $evaluator->walkValueWithWildcards($value, $remaining);
+
+        expect($results)->toBe(['first']);
+    });
+
+    it('walkValueWithWildcards handles negative array index', function (): void {
+        $parser = new PathParser();
+        $expression = $parser->parse('$.data[*].items[-1]');
+        $evaluator = new PathEvaluator($expression);
+
+        $evaluator->enterLevel('data', null);
+        $evaluator->enterLevel(0, null);
+
+        $value = ['items' => ['a', 'b', 'c']];
+        $remaining = $evaluator->getAllRemainingSegments();
+        $results = $evaluator->walkValueWithWildcards($value, $remaining);
+
+        expect($results)->toBe(['c']);
+    });
+
+    it('walkValueWithWildcards returns empty for out-of-bounds index', function (): void {
+        $parser = new PathParser();
+        $expression = $parser->parse('$.data[*].items[99]');
+        $evaluator = new PathEvaluator($expression);
+
+        $evaluator->enterLevel('data', null);
+        $evaluator->enterLevel(0, null);
+
+        $value = ['items' => ['a', 'b']];
+        $remaining = $evaluator->getAllRemainingSegments();
+        $results = $evaluator->walkValueWithWildcards($value, $remaining);
+
+        expect($results)->toBe([]);
+    });
+
+    it('walkValueWithWildcards returns empty for non-list array at index segment', function (): void {
+        $parser = new PathParser();
+        $expression = $parser->parse('$.data[*].items[0]');
+        $evaluator = new PathEvaluator($expression);
+
+        $evaluator->enterLevel('data', null);
+        $evaluator->enterLevel(0, null);
+
+        $value = ['items' => ['key' => 'value']]; // Associative, not a list
+        $remaining = $evaluator->getAllRemainingSegments();
+        $results = $evaluator->walkValueWithWildcards($value, $remaining);
+
+        expect($results)->toBe([]);
+    });
+
+    // Tests for shouldExtractFromValue with nested wildcards
+    it('shouldExtractFromValue returns true for nested wildcard patterns', function (): void {
+        $parser = new PathParser();
+        $expression = $parser->parse('$.users[*].posts[*]');
+        $evaluator = new PathEvaluator($expression);
+
+        $evaluator->enterLevel('users', null);
+        $evaluator->enterLevel(0, null);
+
+        expect($evaluator->shouldExtractFromValue())->toBeTrue();
+    });
+
+    it('shouldExtractFromValue returns true for $.matrix[*][*] at wildcard position', function (): void {
+        $parser = new PathParser();
+        $expression = $parser->parse('$.matrix[*][*]');
+        $evaluator = new PathEvaluator($expression);
+
+        $evaluator->enterLevel('matrix', null);
+        $evaluator->enterLevel(0, null);
+
+        expect($evaluator->shouldExtractFromValue())->toBeTrue();
+    });
 });
