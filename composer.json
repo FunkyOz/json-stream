@@ -39,6 +39,12 @@
         "preferred-install": "dist",
         "allow-plugins": {
             "pestphp/pest-plugin": true
+        },
+        "audit": {
+            "ignore": {
+                "PKSA-z3gr-8qht-p93v": "Dev-only dependency (PHPUnit PHPT deserialization)",
+                "PKSA-rkkf-636k-qjb3": "Dev-only dependency (Symfony Process Windows escaping)"
+            }
         }
     },
     "scripts": {
