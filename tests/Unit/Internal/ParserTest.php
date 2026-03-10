@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 use JsonStream\Config;
 use JsonStream\Exception\ParseException;
-use JsonStream\Internal\BufferManager;
 use JsonStream\Internal\Lexer;
 use JsonStream\Internal\Parser;
 
@@ -13,8 +12,7 @@ function createParser(string $json, int $maxDepth = Config::DEFAULT_MAX_DEPTH): 
     $stream = fopen('php://memory', 'r+');
     fwrite($stream, $json);
     rewind($stream);
-    $buffer = new BufferManager($stream);
-    $lexer = new Lexer($buffer);
+    $lexer = new Lexer($stream);
 
     return new Parser($lexer, $maxDepth);
 }
@@ -408,8 +406,7 @@ describe('Parser', function (): void {
             fwrite($stream, '{"name":"test"}');
             rewind($stream);
 
-            $buffer = new \JsonStream\Internal\BufferManager($stream);
-            $lexer = new Lexer($buffer);
+            $lexer = new Lexer($stream);
             $pathParser = new \JsonStream\Internal\JsonPath\PathParser();
             $pathEvaluator = new \JsonStream\Internal\JsonPath\PathEvaluator(
                 $pathParser->parse('$')
@@ -427,8 +424,7 @@ describe('Parser', function (): void {
             fwrite($stream, '{123:"value"}');
             rewind($stream);
 
-            $buffer = new \JsonStream\Internal\BufferManager($stream);
-            $lexer = new Lexer($buffer);
+            $lexer = new Lexer($stream);
             $pathParser = new \JsonStream\Internal\JsonPath\PathParser();
             $pathEvaluator = new \JsonStream\Internal\JsonPath\PathEvaluator(
                 $pathParser->parse('$.test')
@@ -444,8 +440,7 @@ describe('Parser', function (): void {
             fwrite($stream, '{"a":1 "b":2}');
             rewind($stream);
 
-            $buffer = new \JsonStream\Internal\BufferManager($stream);
-            $lexer = new Lexer($buffer);
+            $lexer = new Lexer($stream);
             $pathParser = new \JsonStream\Internal\JsonPath\PathParser();
             $pathEvaluator = new \JsonStream\Internal\JsonPath\PathEvaluator(
                 $pathParser->parse('$.c')
@@ -461,8 +456,7 @@ describe('Parser', function (): void {
             fwrite($stream, '[1 2]');
             rewind($stream);
 
-            $buffer = new \JsonStream\Internal\BufferManager($stream);
-            $lexer = new Lexer($buffer);
+            $lexer = new Lexer($stream);
             $pathParser = new \JsonStream\Internal\JsonPath\PathParser();
             $pathEvaluator = new \JsonStream\Internal\JsonPath\PathEvaluator(
                 $pathParser->parse('$[5]')

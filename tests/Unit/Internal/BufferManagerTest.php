@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 use JsonStream\Config;
 use JsonStream\Exception\IOException;
-use JsonStream\Internal\BufferManager;
+use JsonStream\Internal\Lexer;
+use JsonStream\Internal\TokenType;
 
 /**
  * Custom stream wrapper that simulates fread failure
@@ -15,7 +16,7 @@ class FailingStreamWrapper
 
     private int $position = 0;
 
-    private string $data = 'test';
+    private string $data = '"test"';
 
     private bool $failNext = false;
 
@@ -71,7 +72,7 @@ class NonSeekableStreamWrapper
 
     private int $position = 0;
 
-    private string $data = 'test data';
+    private string $data = '"test"';
 
     public function stream_open($path, $mode, $options, &$opened_path): bool
     {
@@ -113,199 +114,136 @@ class NonSeekableStreamWrapper
     }
 }
 
-describe('BufferManager', function (): void {
-    it('reads bytes sequentially', function (): void {
-        $stream = fopen('php://memory', 'r+');
-        fwrite($stream, 'abc');
-        rewind($stream);
-
-        $buffer = new BufferManager($stream);
-
-        expect($buffer->readByte())->toBe('a');
-        expect($buffer->readByte())->toBe('b');
-        expect($buffer->readByte())->toBe('c');
-        expect($buffer->readByte())->toBeNull();
-    });
-
+/**
+ * Tests for Lexer's buffer I/O functionality (formerly BufferManager)
+ *
+ * These tests verify the stream reading, buffering, position tracking,
+ * and error handling that was previously in BufferManager and is now
+ * integrated into the Lexer.
+ */
+describe('Lexer Buffer I/O', function (): void {
     it('handles EOF correctly', function (): void {
         $stream = fopen('php://memory', 'r+');
-        fwrite($stream, 'x');
+        fwrite($stream, '1');
         rewind($stream);
 
-        $buffer = new BufferManager($stream);
+        $lexer = new Lexer($stream);
 
-        expect($buffer->isEof())->toBeFalse();
-        $buffer->readByte(); // consume 'x'
-        expect($buffer->readByte())->toBeNull();
-        expect($buffer->isEof())->toBeTrue();
+        expect($lexer->isEof())->toBeFalse();
+        $lexer->nextToken(); // consume 1
+        $lexer->nextToken(); // EOF token
+        expect($lexer->isEof())->toBeTrue();
     });
 
     it('tracks position correctly for regular characters', function (): void {
         $stream = fopen('php://memory', 'r+');
-        fwrite($stream, 'abc');
+        fwrite($stream, '"abc"');
         rewind($stream);
 
-        $buffer = new BufferManager($stream);
+        $lexer = new Lexer($stream);
 
-        expect($buffer->getLine())->toBe(0);
-        expect($buffer->getColumn())->toBe(0);
+        expect($lexer->getLine())->toBe(0);
+        expect($lexer->getColumn())->toBe(0);
 
-        $buffer->readByte(); // 'a'
-        expect($buffer->getLine())->toBe(0);
-        expect($buffer->getColumn())->toBe(1);
-
-        $buffer->readByte(); // 'b'
-        expect($buffer->getLine())->toBe(0);
-        expect($buffer->getColumn())->toBe(2);
+        $lexer->nextToken(); // consume "abc"
+        // After reading "abc" (5 bytes: " a b c ")
+        expect($lexer->getLine())->toBe(0);
+        expect($lexer->getColumn())->toBe(5);
     });
 
     it('tracks position correctly with newlines', function (): void {
         $stream = fopen('php://memory', 'r+');
-        fwrite($stream, "a\nbc");
+        fwrite($stream, "1\n2");
         rewind($stream);
 
-        $buffer = new BufferManager($stream);
+        $lexer = new Lexer($stream);
 
-        $buffer->readByte(); // 'a'
-        expect($buffer->getLine())->toBe(0);
-        expect($buffer->getColumn())->toBe(1);
+        $lexer->nextToken(); // 1
+        expect($lexer->getLine())->toBe(0);
 
-        $buffer->readByte(); // '\n'
-        expect($buffer->getLine())->toBe(1);
-        expect($buffer->getColumn())->toBe(0);
-
-        $buffer->readByte(); // 'b'
-        expect($buffer->getLine())->toBe(1);
-        expect($buffer->getColumn())->toBe(1);
+        // After consuming whitespace (newline) and reading 2
+        $lexer->nextToken(); // 2
+        expect($lexer->getLine())->toBe(1);
     });
 
-    it('peeks without consuming bytes', function (): void {
+    it('refills buffer automatically for large input', function (): void {
         $stream = fopen('php://memory', 'r+');
-        fwrite($stream, 'abc');
+        // Create a JSON array with many elements that exceeds buffer size
+        $elements = implode(',', range(1, 2000));
+        fwrite($stream, "[$elements]");
         rewind($stream);
 
-        $buffer = new BufferManager($stream);
+        $lexer = new Lexer($stream, 1024); // Small buffer
 
-        expect($buffer->peek())->toBe('a');
-        expect($buffer->peek())->toBe('a'); // Same byte
-        expect($buffer->readByte())->toBe('a'); // Now consumed
+        // Read opening bracket
+        $token = $lexer->nextToken();
+        expect($token->type)->toBe(TokenType::LEFT_BRACKET);
 
-        expect($buffer->peek())->toBe('b');
-        expect($buffer->peek(1))->toBe('c');
-    });
-
-    it('peeks with offset', function (): void {
-        $stream = fopen('php://memory', 'r+');
-        fwrite($stream, 'abcdef');
-        rewind($stream);
-
-        $buffer = new BufferManager($stream);
-
-        expect($buffer->peek(0))->toBe('a');
-        expect($buffer->peek(1))->toBe('b');
-        expect($buffer->peek(2))->toBe('c');
-        expect($buffer->peek(5))->toBe('f');
-    });
-
-    it('peek returns null beyond EOF after refill', function (): void {
-        $stream = fopen('php://memory', 'r+');
-        fwrite($stream, 'abc');
-        rewind($stream);
-
-        $buffer = new BufferManager($stream);
-
-        // Read to EOF
-        $buffer->readByte(); // 'a'
-        $buffer->readByte(); // 'b'
-        $buffer->readByte(); // 'c'
-
-        // Peek beyond EOF should return null (triggers refill, then returns null)
-        expect($buffer->peek())->toBeNull();
-        expect($buffer->peek(10))->toBeNull();
-    });
-
-    it('reads chunks efficiently', function (): void {
-        $stream = fopen('php://memory', 'r+');
-        fwrite($stream, 'hello world');
-        rewind($stream);
-
-        $buffer = new BufferManager($stream);
-
-        expect($buffer->readChunk(5))->toBe('hello');
-        expect($buffer->readChunk(6))->toBe(' world');
-        expect($buffer->readChunk(10))->toBe(''); // EOF
-    });
-
-    it('refills buffer automatically', function (): void {
-        $stream = fopen('php://memory', 'r+');
-        fwrite($stream, str_repeat('x', 10000)); // Larger than default buffer
-        rewind($stream);
-
-        $buffer = new BufferManager($stream, 1024); // Small buffer
-
+        // Read all elements
         $count = 0;
-        while ($buffer->readByte() !== null) {
-            $count++;
+        while (true) {
+            $token = $lexer->nextToken();
+            if ($token->type === TokenType::RIGHT_BRACKET) {
+                break;
+            }
+            if ($token->type === TokenType::NUMBER) {
+                $count++;
+            }
         }
 
-        expect($count)->toBe(10000);
+        expect($count)->toBe(2000);
     });
 
     it('tracks total bytes read', function (): void {
         $stream = fopen('php://memory', 'r+');
-        fwrite($stream, 'hello');
+        fwrite($stream, '"hello"');
         rewind($stream);
 
-        $buffer = new BufferManager($stream);
+        $lexer = new Lexer($stream);
 
-        expect($buffer->getTotalBytesRead())->toBe(0);
+        expect($lexer->getTotalBytesRead())->toBe(0);
 
-        $buffer->readByte();
-        expect($buffer->getTotalBytesRead())->toBe(1);
-
-        $buffer->readChunk(3);
-        expect($buffer->getTotalBytesRead())->toBe(4);
+        $lexer->nextToken(); // consume "hello"
+        expect($lexer->getTotalBytesRead())->toBe(7); // 7 bytes: "hello"
     });
 
     it('handles seekable streams with reset', function (): void {
         $stream = fopen('php://memory', 'r+');
-        fwrite($stream, 'abc');
+        fwrite($stream, '[1,2]');
         rewind($stream);
 
-        $buffer = new BufferManager($stream);
+        $lexer = new Lexer($stream);
 
-        $buffer->readByte(); // 'a'
-        $buffer->readByte(); // 'b'
+        $lexer->nextToken(); // [
+        $lexer->nextToken(); // 1
 
-        $buffer->reset();
+        $lexer->reset();
 
-        expect($buffer->readByte())->toBe('a'); // Back to start
-        expect($buffer->getLine())->toBe(0);
-        expect($buffer->getColumn())->toBe(1);
+        $token = $lexer->nextToken(); // Back to [
+        expect($token->type)->toBe(TokenType::LEFT_BRACKET);
+        expect($lexer->getLine())->toBe(0);
     });
 
     it('handles non-seekable streams with reset as no-op', function (): void {
         $stream = fopen('php://stdin', 'r');
-        $buffer = new BufferManager($stream);
+        $lexer = new Lexer($stream);
 
         // Should not throw, just no-op
-        $buffer->reset();
+        $lexer->reset();
 
-        expect(true)->toBeTrue(); // If we get here, no exception was thrown
+        expect(true)->toBeTrue();
     });
 
     it('throws IOException when fseek fails during reset', function (): void {
-        // Register a custom stream wrapper that reports as seekable but fails on seek
         stream_wrapper_register('failseek', NonSeekableStreamWrapper::class);
 
         $stream = fopen('failseek://test', 'r');
 
         try {
-            $buffer = new BufferManager($stream);
-            $buffer->readByte(); // Read some data
+            $lexer = new Lexer($stream, 1024);
+            $lexer->nextToken(); // Read some data
 
-            // This should trigger fseek which will fail
-            expect(fn () => $buffer->reset())
+            expect(fn () => $lexer->reset())
                 ->toThrow(IOException::class, 'Failed to seek stream');
         } finally {
             fclose($stream);
@@ -314,118 +252,91 @@ describe('BufferManager', function (): void {
     });
 
     it('throws on invalid stream resource', function (): void {
-        expect(fn () => new BufferManager('not a resource'))
+        expect(fn () => new Lexer('not a resource'))
             ->toThrow(IOException::class, 'Invalid stream resource');
     });
 
     it('throws on non-readable stream', function (): void {
-        $stream = fopen('php://output', 'w'); // Write-only
+        $stream = fopen('php://output', 'w');
 
-        expect(fn () => new BufferManager($stream))
+        expect(fn () => new Lexer($stream))
             ->toThrow(IOException::class, 'not readable');
     });
 
     it('validates buffer size limits', function (): void {
         $stream = fopen('php://memory', 'r+');
 
-        expect(fn () => new BufferManager($stream, 100)) // Too small
+        expect(fn () => new Lexer($stream, 100)) // Too small
             ->toThrow(IOException::class, 'Buffer size must be');
 
-        expect(fn () => new BufferManager($stream, 2000000)) // Too large
+        expect(fn () => new Lexer($stream, 2000000)) // Too large
             ->toThrow(IOException::class, 'Buffer size must be');
     });
 
     it('accepts valid buffer sizes', function (): void {
         $stream = fopen('php://memory', 'r+');
 
-        $buffer1 = new BufferManager($stream, Config::MIN_BUFFER_SIZE);
-        expect($buffer1)->toBeInstanceOf(BufferManager::class);
+        $lexer1 = new Lexer($stream, Config::MIN_BUFFER_SIZE);
+        expect($lexer1)->toBeInstanceOf(Lexer::class);
 
-        $buffer2 = new BufferManager($stream, Config::DEFAULT_BUFFER_SIZE);
-        expect($buffer2)->toBeInstanceOf(BufferManager::class);
+        $lexer2 = new Lexer($stream, Config::DEFAULT_BUFFER_SIZE);
+        expect($lexer2)->toBeInstanceOf(Lexer::class);
 
-        $buffer3 = new BufferManager($stream, Config::MAX_BUFFER_SIZE);
-        expect($buffer3)->toBeInstanceOf(BufferManager::class);
+        $lexer3 = new Lexer($stream, Config::MAX_BUFFER_SIZE);
+        expect($lexer3)->toBeInstanceOf(Lexer::class);
     });
 
     it('handles empty stream', function (): void {
         $stream = fopen('php://memory', 'r+');
-        // Don't write anything
 
-        $buffer = new BufferManager($stream);
+        $lexer = new Lexer($stream);
 
-        expect($buffer->readByte())->toBeNull();
-        expect($buffer->isEof())->toBeTrue();
+        $token = $lexer->nextToken();
+        expect($token->type)->toBe(TokenType::EOF);
+        expect($lexer->isEof())->toBeTrue();
     });
 
-    it('handles single byte stream', function (): void {
+    it('handles single token stream', function (): void {
         $stream = fopen('php://memory', 'r+');
-        fwrite($stream, 'x');
+        fwrite($stream, '1');
         rewind($stream);
 
-        $buffer = new BufferManager($stream);
+        $lexer = new Lexer($stream);
 
-        expect($buffer->readByte())->toBe('x');
-        expect($buffer->readByte())->toBeNull();
+        $token = $lexer->nextToken();
+        expect($token->type)->toBe(TokenType::NUMBER);
+        expect($token->value)->toBe(1);
+
+        $token = $lexer->nextToken();
+        expect($token->type)->toBe(TokenType::EOF);
     });
 
-    it('handles unicode characters', function (): void {
+    it('handles unicode characters in strings', function (): void {
         $stream = fopen('php://memory', 'r+');
-        fwrite($stream, 'Hello 世界'); // "Hello World" in Chinese
+        fwrite($stream, '"Hello 世界"');
         rewind($stream);
 
-        $buffer = new BufferManager($stream);
+        $lexer = new Lexer($stream);
 
-        expect($buffer->readByte())->toBe('H');
-        expect($buffer->readByte())->toBe('e');
-        expect($buffer->readByte())->toBe('l');
-        expect($buffer->readByte())->toBe('l');
-        expect($buffer->readByte())->toBe('o');
-        expect($buffer->readByte())->toBe(' ');
-        // Chinese characters are multi-byte UTF-8
-        expect($buffer->readByte())->toBeString();
-    });
-
-    it('returns empty string for readChunk with zero size', function (): void {
-        $stream = fopen('php://memory', 'r+');
-        fwrite($stream, 'test data');
-        rewind($stream);
-
-        $buffer = new BufferManager($stream);
-        $result = $buffer->readChunk(0);
-
-        expect($result)->toBe('');
-        expect($buffer->getTotalBytesRead())->toBe(0); // Verify no bytes were consumed
-    });
-
-    it('returns empty string for readChunk with negative size', function (): void {
-        $stream = fopen('php://memory', 'r+');
-        fwrite($stream, 'test data');
-        rewind($stream);
-
-        $buffer = new BufferManager($stream);
-        $result = $buffer->readChunk(-5);
-
-        expect($result)->toBe('');
-        expect($buffer->getTotalBytesRead())->toBe(0); // Verify no bytes were consumed
+        $token = $lexer->nextToken();
+        expect($token->type)->toBe(TokenType::STRING);
+        expect($token->value)->toBe('Hello 世界');
     });
 
     it('throws IOException on fread failure', function (): void {
-        // Register a custom stream wrapper that fails on read
         stream_wrapper_register('failread', FailingStreamWrapper::class);
 
         $stream = fopen('failread://test', 'r');
 
         try {
-            $buffer = new BufferManager($stream, 1024);
+            $lexer = new Lexer($stream, 1024);
 
-            // First readChunk will succeed
-            $buffer->readChunk(4);
+            // First token succeeds
+            $lexer->nextToken();
 
-            // This should trigger refill which will fail
-            $buffer->readChunk(1);
+            // This triggers refill which fails
+            $lexer->nextToken();
 
-            // If we get here, the test failed
             expect(false)->toBeTrue('Expected IOException to be thrown');
         } catch (IOException $e) {
             expect($e->getMessage())->toContain('Failed to read from stream');

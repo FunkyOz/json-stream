@@ -6,7 +6,6 @@ namespace JsonStream\Reader;
 
 use JsonStream\Config;
 use JsonStream\Exception\IOException;
-use JsonStream\Internal\BufferManager;
 use JsonStream\Internal\JsonPath\PathEvaluator;
 use JsonStream\Internal\JsonPath\PathExpression;
 use JsonStream\Internal\JsonPath\PathFilter;
@@ -22,8 +21,6 @@ use JsonStream\Internal\Parser;
  */
 class StreamReader
 {
-    private BufferManager $buffer;
-
     private Lexer $lexer;
 
     private Parser $parser;
@@ -59,8 +56,7 @@ class StreamReader
         $this->jsonPath = $jsonPath;
         $this->ownsStream = $ownsStream;
 
-        $this->buffer = new BufferManager($stream, $bufferSize);
-        $this->lexer = new Lexer($this->buffer);
+        $this->lexer = new Lexer($stream, $bufferSize);
 
         // Parse JSONPath expression if provided
         if ($jsonPath !== null) {
@@ -240,7 +236,7 @@ class StreamReader
      */
     private function resetStreamIfNeeded(): void
     {
-        if ($this->buffer->getTotalBytesRead() === 0) {
+        if ($this->lexer->getTotalBytesRead() === 0) {
             return;
         }
 
@@ -248,7 +244,7 @@ class StreamReader
 
         $metadata = stream_get_meta_data($this->stream);
         if ($metadata['seekable']) {
-            $this->buffer->reset();
+            $this->lexer->reset();
         } else {
             throw new IOException(
                 'Cannot use fluent methods after reading from a non-seekable stream'
@@ -336,7 +332,7 @@ class StreamReader
     public function getStats(): array
     {
         return [
-            'bytesRead' => $this->buffer->getTotalBytesRead(),
+            'bytesRead' => $this->lexer->getTotalBytesRead(),
             'itemsProcessed' => $this->itemsProcessed,
             'bufferSize' => $this->bufferSize,
             'maxDepth' => $this->maxDepth,
@@ -375,13 +371,13 @@ class StreamReader
     }
 
     /**
-     * Get buffer manager (for iterators)
+     * Get lexer (for iterators)
      *
      * @internal
      */
-    public function getBuffer(): BufferManager
+    public function getLexer(): Lexer
     {
-        return $this->buffer;
+        return $this->lexer;
     }
 
     /**

@@ -325,11 +325,11 @@ describe('StreamReader', function (): void {
     });
 
     describe('internal methods', function (): void {
-        it('provides access to buffer manager', function (): void {
+        it('provides access to lexer', function (): void {
             $reader = StreamReader::fromString('[]');
 
-            // getBuffer is an internal method (line 343)
-            expect($reader->getBuffer())->toBeInstanceOf(\JsonStream\Internal\BufferManager::class);
+            // getLexer is an internal method
+            expect($reader->getLexer())->toBeInstanceOf(\JsonStream\Internal\Lexer::class);
         });
 
         it('provides access to path evaluator', function (): void {

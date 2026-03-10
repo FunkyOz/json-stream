@@ -29,17 +29,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Merged BufferManager into Lexer**: Eliminated `BufferManager` as a standalone class by absorbing all buffer I/O state and methods into `Lexer`. This removes all inter-object method call overhead from the tokenization hot path. `StreamReader::getBuffer()` replaced with `StreamReader::getLexer()`
 - **PathExpression**: `canUseSimpleStreaming()` now returns `true` for patterns with multiple wildcards, enabling streaming for nested wildcard patterns
 - **PropertySegment**: `matches()` now supports numeric string properties matching integer array indices (e.g., `$["0"]` matches array index `0`)
 - **Parser**: Enhanced `streamFromArray()` to detect nested wildcards and use recursive extraction via `walkValueWithWildcards()`
 - **PathExpression Analysis Caching**: `hasRecursive()` and `canUseSimpleStreaming()` results are now cached at construction time for better performance
 - **Optimized `isAssociativeArray()`**: Replaced custom method with inline `array_is_list()` check in `PathFilter`
-- **Optimized `readChunk()` Concatenation**: `BufferManager::readChunk()` now uses array collection with `implode()` instead of repeated string concatenation
 - **PHPStan Ignore Comments**: Added descriptive explanations to all `@phpstan-ignore-next-line` annotations
 - **Removed Unused Config Constants**: Removed `MODE_RELAXED`, `ENCODE_NUMERIC_CHECK`, `ENCODE_PRETTY_PRINT`, `ENCODE_UNESCAPED_SLASHES`, and `ENCODE_UNESCAPED_UNICODE` constants that were reserved for unimplemented features
 
 ### Performance
 
+- **Tokenization Hot Path**: Merged `BufferManager` into `Lexer` to eliminate ~2-4 million per-byte cross-object method calls for a 1MB file. Whitespace skipping now uses direct `$this->buffer[$this->bufferPosition]` access instead of `peek()`/`readByte()` method calls
 - **Memory**: Nested wildcard patterns like `$.users[*].posts[*]` now use O(single outer element) memory instead of O(entire JSON)
 - **Streaming**: Arbitrary depth nesting (4+ wildcard levels) is supported without buffering
 

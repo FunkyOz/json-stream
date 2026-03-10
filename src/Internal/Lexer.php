@@ -4,26 +4,72 @@ declare(strict_types=1);
 
 namespace JsonStream\Internal;
 
+use JsonStream\Config;
+use JsonStream\Exception\IOException;
 use JsonStream\Exception\ParseException;
 
 /**
  * JSON Lexer - converts byte stream to tokens
  *
  * Implements RFC 8259 compliant tokenization with proper Unicode handling,
- * escape sequences, and comprehensive error messages.
+ * escape sequences, and comprehensive error messages. Manages buffered I/O
+ * operations for efficient stream reading internally.
  *
  * @internal
  */
 final class Lexer
 {
+    // Buffer I/O state
+    private string $buffer = '';
+
+    private int $bufferPosition = 0;
+
+    private int $bufferLength = 0;
+
+    private int $totalBytesRead = 0;
+
+    private bool $eof = false;
+
+    private int $line = 0;
+
+    private int $column = 0;
+
+    // Lexer state
     private ?Token $peekedToken = null;
 
     /**
-     * @param  BufferManager  $buffer  Input buffer
+     * @param  resource  $stream  Stream resource to read from
+     * @param  int  $bufferSize  Buffer size in bytes
+     *
+     * @throws IOException If stream is invalid or unreadable
      */
     public function __construct(
-        private readonly BufferManager $buffer
+        private readonly mixed $stream,
+        private readonly int $bufferSize = Config::DEFAULT_BUFFER_SIZE
     ) {
+        if (! is_resource($this->stream)) {
+            throw new IOException('Invalid stream resource');
+        }
+
+        $metadata = stream_get_meta_data($this->stream);
+        $mode = $metadata['mode'];
+
+        // Check if stream is readable
+        // Readable modes start with 'r' or contain '+'
+        $isReadable = str_starts_with($mode, 'r') || str_contains($mode, '+');
+
+        if (! $isReadable) {
+            throw new IOException('Stream is not readable');
+        }
+
+        // Validate buffer size
+        if ($this->bufferSize < Config::MIN_BUFFER_SIZE || $this->bufferSize > Config::MAX_BUFFER_SIZE) {
+            throw new IOException(sprintf(
+                'Buffer size must be between %d and %d bytes',
+                Config::MIN_BUFFER_SIZE,
+                Config::MAX_BUFFER_SIZE
+            ));
+        }
     }
 
     /**
@@ -61,6 +107,214 @@ final class Lexer
         return $this->peekedToken;
     }
 
+    // ── Buffer I/O Methods ──────────────────────────────────────────────
+
+    /**
+     * Read single byte from stream
+     *
+     * @return string|null Next byte or null if at EOF
+     *
+     * @throws IOException If read operation fails
+     */
+    private function readByte(): ?string
+    {
+        if ($this->bufferPosition >= $this->bufferLength) {
+            if (! $this->refillBuffer()) {
+                return null;
+            }
+        }
+
+        $byte = $this->buffer[$this->bufferPosition++];
+        $this->totalBytesRead++;
+
+        if ($byte === "\n") {
+            $this->line++;
+            $this->column = 0;
+        } else {
+            $this->column++;
+        }
+
+        return $byte;
+    }
+
+    /**
+     * Peek at byte without consuming it
+     *
+     * @param  int  $offset  Offset from current position (0-based)
+     * @return string|null Byte at position or null if beyond EOF
+     *
+     * @throws IOException If read operation fails
+     */
+    private function peek(int $offset = 0): ?string
+    {
+        $pos = $this->bufferPosition + $offset;
+
+        if ($pos < $this->bufferLength) {
+            return $this->buffer[$pos];
+        }
+
+        if (! $this->eof) {
+            $this->refillBuffer();
+
+            // After refill, bufferPosition is reset to 0, so recalculate
+            $pos = $this->bufferPosition + $offset;
+
+            if ($pos < $this->bufferLength) {
+                return $this->buffer[$pos];
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Read chunk of bytes efficiently
+     *
+     * @param  int  $size  Number of bytes to read
+     * @return string Read bytes (may be less than requested if EOF)
+     *
+     * @throws IOException If read operation fails
+     */
+    private function readChunk(int $size): string
+    {
+        if ($size <= 0) {
+            return '';
+        }
+
+        $chunks = [];
+        $remaining = $size;
+
+        while ($remaining > 0) {
+            if ($this->bufferPosition >= $this->bufferLength) {
+                if (! $this->refillBuffer()) {
+                    break;
+                }
+            }
+
+            $available = $this->bufferLength - $this->bufferPosition;
+            $take = min($remaining, $available);
+
+            $chunk = substr($this->buffer, $this->bufferPosition, $take);
+            $chunks[] = $chunk;
+
+            $this->bufferPosition += $take;
+            $this->totalBytesRead += $take;
+            $remaining -= $take;
+
+            // Update position for chunk
+            for ($i = 0; $i < $take; $i++) {
+                if ($chunk[$i] === "\n") {
+                    $this->line++;
+                    $this->column = 0;
+                } else {
+                    $this->column++;
+                }
+            }
+        }
+
+        return implode('', $chunks);
+    }
+
+    /**
+     * Check if at end of stream
+     */
+    public function isEof(): bool
+    {
+        return $this->eof && $this->bufferPosition >= $this->bufferLength;
+    }
+
+    /**
+     * Get current line number (0-based)
+     */
+    public function getLine(): int
+    {
+        return $this->line;
+    }
+
+    /**
+     * Get current column number (0-based)
+     */
+    public function getColumn(): int
+    {
+        return $this->column;
+    }
+
+    /**
+     * Get total bytes read from stream
+     */
+    public function getTotalBytesRead(): int
+    {
+        return $this->totalBytesRead;
+    }
+
+    /**
+     * Reset buffer for seekable streams (no-op for non-seekable)
+     *
+     * @throws IOException If seek fails
+     */
+    public function reset(): void
+    {
+        $metadata = stream_get_meta_data($this->stream);
+
+        if (! $metadata['seekable']) {
+            return;
+        }
+
+        if (fseek($this->stream, 0, SEEK_SET) === -1) {
+            throw new IOException('Failed to seek stream');
+        }
+
+        $this->buffer = '';
+        $this->bufferPosition = 0;
+        $this->bufferLength = 0;
+        $this->totalBytesRead = 0;
+        $this->line = 0;
+        $this->column = 0;
+        $this->eof = false;
+        $this->peekedToken = null;
+    }
+
+    /**
+     * Refill internal buffer from stream
+     *
+     * @return bool True if buffer was refilled, false if EOF
+     *
+     * @throws IOException If read fails
+     */
+    private function refillBuffer(): bool
+    {
+        if ($this->eof) {
+            return false;
+        }
+
+        // Ensure buffer size is within valid range for fread (required for PHPStan compatibility across versions)
+        $bufferSize = max(1, $this->bufferSize);
+
+        $data = fread($this->stream, $bufferSize);
+
+        if ($data === false) {
+            throw new IOException('Failed to read from stream');
+        }
+
+        if ($data === '') {
+            $this->eof = true;
+
+            return false;
+        }
+
+        $this->buffer = $data;
+        $this->bufferPosition = 0;
+        $this->bufferLength = strlen($data);
+
+        if (feof($this->stream)) {
+            $this->eof = true;
+        }
+
+        return true;
+    }
+
+    // ── Tokenization Methods ────────────────────────────────────────────
+
     /**
      * Scan next token from buffer
      *
@@ -72,10 +326,10 @@ final class Lexer
     {
         $this->skipWhitespace();
 
-        // Get 0-based position from buffer, convert to 1-based for token
-        $line = $this->buffer->getLine() + 1;
-        $column = $this->buffer->getColumn() + 1;
-        $char = $this->buffer->readByte();
+        // Get 0-based position, convert to 1-based for token
+        $line = $this->line + 1;
+        $column = $this->column + 1;
+        $char = $this->readByte();
 
         if ($char === null) {
             return new Token(TokenType::EOF, null, $line, $column);
@@ -98,24 +352,34 @@ final class Lexer
     }
 
     /**
-     * Skip whitespace characters
+     * Skip whitespace characters with inline buffer access
      */
     private function skipWhitespace(): void
     {
         while (true) {
-            $char = $this->buffer->peek();
+            // Inline buffer bounds check
+            if ($this->bufferPosition >= $this->bufferLength) {
+                if (! $this->refillBuffer()) {
+                    return;
+                }
+            }
 
-            if ($char === null) {
+            $ch = $this->buffer[$this->bufferPosition];
+
+            if ($ch !== ' ' && $ch !== "\n" && $ch !== "\r" && $ch !== "\t") {
                 return;
             }
 
-            if ($char === ' ' || $char === "\n" || $char === "\r" || $char === "\t") {
-                $this->buffer->readByte();
-
-                continue;
+            // Inline position tracking
+            if ($ch === "\n") {
+                $this->line++;
+                $this->column = 0;
+            } else {
+                $this->column++;
             }
 
-            return;
+            $this->bufferPosition++;
+            $this->totalBytesRead++;
         }
     }
 
@@ -133,19 +397,17 @@ final class Lexer
         $result = '';
 
         while (true) {
-            $firstByte = $this->buffer->readByte();
+            $firstByte = $this->readByte();
 
             if ($firstByte === null) {
                 throw $this->error('Unterminated string', $line, $column);
             }
 
             if ($firstByte === '"') {
-                // End of string
                 return new Token(TokenType::STRING, $result, $line, $column);
             }
 
             if ($firstByte === '\\') {
-                // Escape sequence
                 $result .= $this->parseEscapeSequence();
 
                 continue;
@@ -156,8 +418,8 @@ final class Lexer
             if ($ord < 0x20) {
                 throw $this->error(
                     sprintf('Invalid control character in string (0x%02x)', $ord),
-                    $this->buffer->getLine(),
-                    $this->buffer->getColumn()
+                    $this->line,
+                    $this->column
                 );
             }
 
@@ -168,8 +430,8 @@ final class Lexer
             if (! mb_check_encoding($char, 'UTF-8')) {
                 throw $this->error(
                     'Invalid UTF-8 sequence in string',
-                    $this->buffer->getLine(),
-                    $this->buffer->getColumn()
+                    $this->line,
+                    $this->column
                 );
             }
 
@@ -194,23 +456,18 @@ final class Lexer
 
         // Determine number of bytes in this UTF-8 sequence
         if (($ord & 0xE0) === 0xC0) {
-            // 2-byte character: 110xxxxx 10xxxxxx
             $additionalBytes = 1;
         } elseif (($ord & 0xF0) === 0xE0) {
-            // 3-byte character: 1110xxxx 10xxxxxx 10xxxxxx
             $additionalBytes = 2;
         } elseif (($ord & 0xF8) === 0xF0) {
-            // 4-byte character: 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
             $additionalBytes = 3;
         } else {
-            // Invalid UTF-8 start byte
             return $firstByte;
         }
 
-        // Read additional bytes
         $char = $firstByte;
         for ($i = 0; $i < $additionalBytes; $i++) {
-            $byte = $this->buffer->readByte();
+            $byte = $this->readByte();
             if ($byte === null) {
                 break;
             }
@@ -229,13 +486,13 @@ final class Lexer
      */
     private function parseEscapeSequence(): string
     {
-        $char = $this->buffer->readByte();
+        $char = $this->readByte();
 
         if ($char === null) {
             throw $this->error(
                 'Unterminated escape sequence',
-                $this->buffer->getLine(),
-                $this->buffer->getColumn()
+                $this->line,
+                $this->column
             );
         }
 
@@ -251,8 +508,8 @@ final class Lexer
             'u' => $this->parseUnicodeEscape(),
             default => throw $this->error(
                 "Invalid escape sequence: \\$char",
-                $this->buffer->getLine(),
-                $this->buffer->getColumn()
+                $this->line,
+                $this->column
             ),
         };
     }
@@ -268,13 +525,13 @@ final class Lexer
      */
     private function parseUnicodeEscape(): string
     {
-        $hex = $this->buffer->readChunk(4);
+        $hex = $this->readChunk(4);
 
         if (strlen($hex) !== 4 || ! ctype_xdigit($hex)) {
             throw $this->error(
                 "Invalid Unicode escape sequence: \\u$hex",
-                $this->buffer->getLine(),
-                $this->buffer->getColumn()
+                $this->line,
+                $this->column
             );
         }
 
@@ -282,25 +539,24 @@ final class Lexer
 
         // Handle UTF-16 surrogate pairs (high surrogate: 0xD800-0xDBFF)
         if ($codepoint >= 0xD800 && $codepoint <= 0xDBFF) {
-            // High surrogate must be followed by low surrogate
-            if ($this->buffer->peek() !== '\\' || $this->buffer->peek(1) !== 'u') {
+            if ($this->peek() !== '\\' || $this->peek(1) !== 'u') {
                 throw $this->error(
                     'Invalid lone high UTF-16 surrogate: \\u' . $hex,
-                    $this->buffer->getLine(),
-                    $this->buffer->getColumn()
+                    $this->line,
+                    $this->column
                 );
             }
 
-            $this->buffer->readByte(); // consume \
-            $this->buffer->readByte(); // consume u
+            $this->readByte(); // consume \
+            $this->readByte(); // consume u
 
-            $lowHex = $this->buffer->readChunk(4);
+            $lowHex = $this->readChunk(4);
 
             if (strlen($lowHex) !== 4 || ! ctype_xdigit($lowHex)) {
                 throw $this->error(
                     "Invalid Unicode escape sequence: \\u$lowHex",
-                    $this->buffer->getLine(),
-                    $this->buffer->getColumn()
+                    $this->line,
+                    $this->column
                 );
             }
 
@@ -309,19 +565,18 @@ final class Lexer
             if ($lowCodepoint < 0xDC00 || $lowCodepoint > 0xDFFF) {
                 throw $this->error(
                     'Invalid UTF-16 surrogate pair: expected low surrogate after \\u' . $hex,
-                    $this->buffer->getLine(),
-                    $this->buffer->getColumn()
+                    $this->line,
+                    $this->column
                 );
             }
 
             // Combine surrogates into single codepoint
             $codepoint = 0x10000 + (($codepoint & 0x3FF) << 10) + ($lowCodepoint & 0x3FF);
         } elseif ($codepoint >= 0xDC00 && $codepoint <= 0xDFFF) {
-            // Lone low surrogate
             throw $this->error(
                 'Invalid lone low UTF-16 surrogate: \\u' . $hex,
-                $this->buffer->getLine(),
-                $this->buffer->getColumn()
+                $this->line,
+                $this->column
             );
         }
 
@@ -331,8 +586,8 @@ final class Lexer
         if ($char === false) {
             throw $this->error(
                 'Invalid Unicode codepoint: \\u' . $hex,
-                $this->buffer->getLine(),
-                $this->buffer->getColumn()
+                $this->line,
+                $this->column
             );
         }
 
@@ -341,8 +596,6 @@ final class Lexer
 
     /**
      * Scan number token (integer, float, or scientific notation)
-     *
-     * Parses numbers according to RFC 8259 and converts to appropriate PHP type.
      *
      * @param  string  $firstChar  First character of number
      * @param  int  $line  Starting line
@@ -356,16 +609,14 @@ final class Lexer
         $isFloat = false;
         $isNegative = ($firstChar === '-');
 
-        // Build number as integer until we hit decimal/exponent
         $intPart = 0;
         $fracPart = 0;
         $fracDigits = 0;
         $expPart = 0;
         $expNegative = false;
 
-        // Handle negative sign
         if ($isNegative) {
-            $firstChar = $this->buffer->readByte();
+            $firstChar = $this->readByte();
             if ($firstChar === null || ! ctype_digit($firstChar)) {
                 throw $this->error('Expected digit after minus sign', $line, $column);
             }
@@ -376,27 +627,23 @@ final class Lexer
         $maxLastDigit = PHP_INT_MAX % 10;
         $overflowed = false;
 
-        // Integer part
         if ($firstChar === '0') {
-            // Leading zero - next must be . or e/E or end
-            $next = $this->buffer->peek();
+            $next = $this->peek();
             if ($next !== null && ctype_digit($next)) {
                 throw $this->error('Leading zeros not allowed', $line, $column);
             }
             $intPart = 0;
         } else {
-            // Parse integer digits
             $intPart = ord($firstChar) - ord('0');
 
             while (true) {
-                $char = $this->buffer->peek();
+                $char = $this->peek();
                 if ($char === null || ! ctype_digit($char)) {
                     break;
                 }
-                $this->buffer->readByte();
+                $this->readByte();
                 $digit = ord($char) - ord('0');
 
-                // Check for overflow before multiplication
                 if (! $overflowed && ($intPart > $maxBeforeOverflow
                     || ($intPart === $maxBeforeOverflow && $digit > $maxLastDigit))) {
                     $overflowed = true;
@@ -408,11 +655,11 @@ final class Lexer
         }
 
         // Decimal part
-        if ($this->buffer->peek() === '.') {
+        if ($this->peek() === '.') {
             $isFloat = true;
-            $this->buffer->readByte(); // consume .
+            $this->readByte();
 
-            $char = $this->buffer->peek();
+            $char = $this->peek();
             // @phpstan-ignore-next-line — peek() can return null at EOF/buffer boundary
             if ($char === null) {
                 throw $this->error('Expected digit after decimal point', $line, $column);
@@ -423,7 +670,7 @@ final class Lexer
             }
 
             while (true) {
-                $char = $this->buffer->peek();
+                $char = $this->peek();
                 // @phpstan-ignore-next-line — peek() can return null at EOF/buffer boundary
                 if ($char === null) {
                     break;
@@ -432,23 +679,23 @@ final class Lexer
                 if (! ctype_digit($char)) {
                     break;
                 }
-                $this->buffer->readByte();
+                $this->readByte();
                 $fracPart = $fracPart * 10 + (ord($char) - ord('0'));
                 $fracDigits++;
             }
         }
 
         // Exponent part
-        $next = $this->buffer->peek();
+        $next = $this->peek();
         if ($next === 'e' || $next === 'E') {
             $isFloat = true;
-            $this->buffer->readByte(); // consume e/E
+            $this->readByte();
 
-            $char = $this->buffer->peek();
+            $char = $this->peek();
             if ($char === '+' || $char === '-') {
                 $expNegative = ($char === '-');
-                $this->buffer->readByte();
-                $char = $this->buffer->peek();
+                $this->readByte();
+                $char = $this->peek();
             }
 
             if ($char === null || ! ctype_digit($char)) {
@@ -456,11 +703,11 @@ final class Lexer
             }
 
             while (true) {
-                $char = $this->buffer->peek();
+                $char = $this->peek();
                 if ($char === null || ! ctype_digit($char)) {
                     break;
                 }
-                $this->buffer->readByte();
+                $this->readByte();
                 $expPart = $expPart * 10 + (ord($char) - ord('0'));
             }
 
@@ -507,8 +754,7 @@ final class Lexer
     {
         $len = strlen($expected);
 
-        // First character already consumed, read remaining
-        $remaining = $this->buffer->readChunk($len - 1);
+        $remaining = $this->readChunk($len - 1);
 
         if ($remaining !== substr($expected, 1)) {
             throw $this->error("Invalid keyword, expected '$expected'", $line, $column);
@@ -521,14 +767,14 @@ final class Lexer
      * Create ParseException with position information
      *
      * @param  string  $message  Error message
-     * @param  int  $line  Line number (0-based from buffer)
-     * @param  int  $column  Column number (0-based from buffer)
+     * @param  int  $line  Line number (0-based)
+     * @param  int  $column  Column number (0-based)
      * @return ParseException Exception with position
      */
     private function error(string $message, int $line, int $column): ParseException
     {
         $exception = new ParseException($message);
-        $exception->setPosition($line + 1, $column + 1); // Convert 0-based to 1-based
+        $exception->setPosition($line + 1, $column + 1);
 
         return $exception;
     }

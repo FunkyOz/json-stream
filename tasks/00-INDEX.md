@@ -254,7 +254,7 @@ Foundation optimizations that unlock all subsequent improvements.
 
 | # | Task | Priority | Complexity | Status | Expected Impact |
 |---|------|----------|------------|--------|-----------------|
-| 57 | [Optimize readByte/peek Hot Path](57-optimize-readbyte-peek-hot-path.md) | Critical | High | `todo` | +30-50% throughput |
+| 57 | [Merge BufferManager into Lexer](57-optimize-readbyte-peek-hot-path.md) | Critical | High | `done` | +40-80% throughput |
 | 58 | [Remove mb_check_encoding from Hot Path](58-remove-mb-check-encoding-from-hot-path.md) | Critical | Medium | `todo` | +20-30% string throughput |
 
 **Sub-Phase Duration:** ~1-2 weeks

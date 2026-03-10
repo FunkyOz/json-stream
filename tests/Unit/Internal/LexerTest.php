@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use JsonStream\Exception\ParseException;
-use JsonStream\Internal\BufferManager;
 use JsonStream\Internal\Lexer;
 use JsonStream\Internal\TokenType;
 
@@ -12,9 +11,8 @@ function createLexer(string $json): Lexer
     $stream = fopen('php://memory', 'r+');
     fwrite($stream, $json);
     rewind($stream);
-    $buffer = new BufferManager($stream);
 
-    return new Lexer($buffer);
+    return new Lexer($stream);
 }
 
 describe('Lexer', function (): void {
@@ -462,12 +460,7 @@ describe('Lexer', function (): void {
         });
 
         it('throws on number with non-digit after decimal with EOF', function (): void {
-            // Create a stream that returns null after decimal point
-            $stream = fopen('php://memory', 'r+');
-            fwrite($stream, '1.');
-            rewind($stream);
-            $buffer = new BufferManager($stream);
-            $lexer = new Lexer($buffer);
+            $lexer = createLexer('1.');
 
             expect(fn () => $lexer->nextToken())
                 ->toThrow(ParseException::class, 'Expected digit after decimal point');
