@@ -52,7 +52,7 @@ describe('Task 37: Stream Position in Fluent Methods', function (): void {
     it('throws IOException for non-seekable stream after partial read', function (): void {
         // Create a non-seekable stream (pipe)
         $pipes = [];
-        $process = proc_open('echo \'{"a":1}\'', [1 => ['pipe', 'w']], $pipes);
+        $process = proc_open('php -r "echo \'{\"a\":1}\';"', [1 => ['pipe', 'w']], $pipes);
         $stream = $pipes[1];
 
         $reader = StreamReader::fromStream($stream);
