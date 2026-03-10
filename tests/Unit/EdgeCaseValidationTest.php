@@ -323,18 +323,35 @@ describe('Task 46: IOException File Path', function (): void {
     });
 
     it('sets file path on unreadable file exception', function (): void {
-        // Create an unreadable file
-        $tempFile = tempnam(sys_get_temp_dir(), 'jsonstream_test_');
-        chmod($tempFile, 0000);
-
-        try {
-            StreamReader::fromFile($tempFile);
-            expect(false)->toBeTrue(); // Should not reach here
-        } catch (IOException $e) {
-            expect($e->getFilePath())->toBe($tempFile);
-        } finally {
-            chmod($tempFile, 0644);
+        if (DIRECTORY_SEPARATOR === '\\') {
+            // Windows: chmod does not restrict access; use a directory instead
+            // fopen() on a directory fails on Windows, triggering IOException
+            $tempFile = tempnam(sys_get_temp_dir(), 'jsonstream_test_');
             unlink($tempFile);
+            mkdir($tempFile);
+
+            try {
+                StreamReader::fromFile($tempFile);
+                expect(false)->toBeTrue(); // Should not reach here
+            } catch (IOException $e) {
+                expect($e->getFilePath())->toBe($tempFile);
+            } finally {
+                rmdir($tempFile);
+            }
+        } else {
+            // Unix: chmod makes the file unreadable
+            $tempFile = tempnam(sys_get_temp_dir(), 'jsonstream_test_');
+            chmod($tempFile, 0000);
+
+            try {
+                StreamReader::fromFile($tempFile);
+                expect(false)->toBeTrue(); // Should not reach here
+            } catch (IOException $e) {
+                expect($e->getFilePath())->toBe($tempFile);
+            } finally {
+                chmod($tempFile, 0644);
+                unlink($tempFile);
+            }
         }
     });
 });
